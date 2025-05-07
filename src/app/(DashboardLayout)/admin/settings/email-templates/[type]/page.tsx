@@ -13,7 +13,7 @@ import {
   Tabs,
   Tab,
 } from "@mui/material";
-import { IconDeviceFloppy, IconArrowLeft, IconRefresh, IconCode, IconEye } from "@tabler/icons-react";
+import { IconDeviceFloppy, IconArrowLeft, IconRefresh, IconCode, IconEye, IconHtml } from "@tabler/icons-react";
 import PageContainer from "@/component/container/PageContainer";
 import DashboardCard from "@/component/shared/DashboardCard";
 import { useGetEmailTemplateByType, useUpdateEmailTemplate } from "@/hooks/emailTemplate";
@@ -51,10 +51,10 @@ function TabPanel(props: TabPanelProps) {
 export default function EmailTemplateEditPage({ params }: { params: { type: string } }) {
   const router = useRouter();
   const { type } = params;
-  
+
   const { data: response, isLoading } = useGetEmailTemplateByType(type);
   const { mutate: updateTemplate, isPending } = useUpdateEmailTemplate();
-  
+
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
   const [subject, setSubject] = useState("");
@@ -108,14 +108,26 @@ export default function EmailTemplateEditPage({ params }: { params: { type: stri
             toast.success("Cập nhật template email thành công!");
           },
           onError: (err: any) => {
-            setError(err.message || "Có lỗi xảy ra khi cập nhật template email");
-            toast.error(err.message || "Có lỗi xảy ra khi cập nhật template email");
+            if (err.response?.data?.message && Array.isArray(err.response.data.message)) {
+              const errorMessages = err.response.data.message.join(", ");
+              setError(errorMessages);
+              toast.error(errorMessages);
+            } else {
+              setError(err.message || "Có lỗi xảy ra khi cập nhật template email");
+              toast.error(err.message || "Có lỗi xảy ra khi cập nhật template email");
+            }
           },
         }
       );
     } catch (err: any) {
-      setError(err.message || "Có lỗi xảy ra khi cập nhật template email");
-      toast.error(err.message || "Có lỗi xảy ra khi cập nhật template email");
+      if (err.response?.data?.message && Array.isArray(err.response.data.message)) {
+        const errorMessages = err.response.data.message.join(", ");
+        setError(errorMessages);
+        toast.error(errorMessages);
+      } else {
+        setError(err.message || "Có lỗi xảy ra khi cập nhật template email");
+        toast.error(err.message || "Có lỗi xảy ra khi cập nhật template email");
+      }
     }
   };
 
@@ -194,7 +206,7 @@ export default function EmailTemplateEditPage({ params }: { params: { type: stri
 </body>
 </html>
     `;
-    
+
     if (htmlContent.trim() === '' || confirm('Bạn có chắc chắn muốn thay thế nội dung hiện tại bằng mẫu mới?')) {
       setHtmlContent(basicTemplate);
       setPreviewHtml(basicTemplate);
@@ -214,16 +226,8 @@ export default function EmailTemplateEditPage({ params }: { params: { type: stri
       title="Chỉnh sửa Template Email"
       description="Chỉnh sửa nội dung template email"
     >
-      <Box sx={{ mb: 2 }}>
-        <Button
-          variant="outlined"
-          startIcon={<IconArrowLeft size={18} />}
-          onClick={() => router.push("/admin/settings/email-templates")}
-        >
-          Quay lại danh sách
-        </Button>
-      </Box>
-      
+
+
       <DashboardCard
         title="Chỉnh sửa Template Email"
         action={
@@ -234,187 +238,206 @@ export default function EmailTemplateEditPage({ params }: { params: { type: stri
           />
         }
       >
-        {isLoading ? (
-          <Box sx={{ p: 5, textAlign: "center" }}>
-            <CircularProgress />
+        <>
+          <Box sx={{ mb: 2 }}>
+            <Button
+              variant="outlined"
+              startIcon={<IconArrowLeft size={18} />}
+              onClick={() => router.push("/admin/settings/email-templates")}
+            >
+              Quay lại danh sách
+            </Button>
           </Box>
-        ) : (
-          <form onSubmit={handleSubmit}>
-            <Box>
-              <Box >
-                <TextField
-                  label="Tên Template"
-                  fullWidth
-                  value={name}
-                  onChange={(e) => setName(e.target.value)}
-                  required
-                />
-              </Box>
-              <Box >
-                <TextField
-                  label="Tiêu đề Email"
-                  fullWidth
-                  value={subject}
-                  onChange={(e) => setSubject(e.target.value)}
-                  required
-                />
-              </Box>
-              <Box >
-                <TextField
-                  label="Mô tả"
-                  fullWidth
-                  multiline
-                  rows={2}
-                  value={description}
-                  onChange={(e) => setDescription(e.target.value)}
-                />
-              </Box>
-              <Box >
-                <Typography variant="subtitle1" gutterBottom>
-                  Biến có thể sử dụng trong template
-                </Typography>
-                <Box sx={{ display: "flex", flexWrap: "wrap", gap: 1, mb: 2 }}>
-                  {Object.entries(variables).map(([key, desc]) => (
-                    <Tooltip key={key} title={desc}>
-                      <Chip 
-                        label={`{{${key}}}`} 
-                        size="small" 
-                        onClick={() => insertVariable(key)} 
-                        color="primary"
-                        variant="outlined"
-                        sx={{ cursor: 'pointer' }}
-                      />
-                    </Tooltip>
-                  ))}
-                </Box>
-                <Box sx={{ display: "flex", gap: 1, mb: 2 }}>
+          {isLoading ? (
+            <Box sx={{ p: 5, textAlign: "center" }}>
+              <CircularProgress />
+            </Box>
+          ) : (
+            <form onSubmit={handleSubmit}>
+              <Box className="space-y-4">
+                <Box >
                   <TextField
-                    label="Thêm biến mới"
-                    value={newVariable}
-                    onChange={(e) => setNewVariable(e.target.value)}
+                    label="Tên Template"
+                    size="small"
                     fullWidth
+                    value={name}
+                    onChange={(e) => setName(e.target.value)}
+                    required
                   />
-                  <Button variant="contained" onClick={addVariable}>
-                    Thêm
-                  </Button>
                 </Box>
-                
-                <Paper variant="outlined" sx={{ p: 0, minHeight: 400 }}>
-                  <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
-                    <Tabs value={editorTab} onChange={handleTabChange} aria-label="email template editor tabs">
-                      <Tab 
-                        icon={<IconCode size="18" />} 
-                        iconPosition="start" 
-                        label="HTML" 
-                        id="editor-tab-0" 
-                        aria-controls="editor-tabpanel-0" 
-                      />
-                      <Tab 
-                        icon={<IconEye size="18" />} 
-                        iconPosition="start" 
-                        label="Xem trước" 
-                        id="editor-tab-1" 
-                        aria-controls="editor-tabpanel-1" 
-                      />
-                      {editorTab === 0 && (
-                        <Box sx={{ ml: 'auto', mr: 1 }}>
-                          <Button 
-                            size="small"
-                            variant="outlined"
-                            onClick={() => setPreviewHtml(htmlContent)}
-                            startIcon={<IconEye size="16" />}
-                          >
-                            Cập nhật xem trước
-                          </Button>
-                        </Box>
-                      )}
-                    </Tabs>
+                <Box >
+                  <TextField
+                    size="small"
+                    label="Tiêu đề Email"
+                    fullWidth
+                    value={subject}
+                    onChange={(e) => setSubject(e.target.value)}
+                    required
+                  />
+                </Box>
+                <Box >
+                  <TextField
+                    size="small"
+                    label="Mô tả"
+                    fullWidth
+                    multiline
+                    value={description}
+                    onChange={(e) => setDescription(e.target.value)}
+                  />
+                </Box>
+                <Box >
+                  <Typography variant="subtitle1" gutterBottom>
+                    Biến có thể sử dụng trong template
+                  </Typography>
+                  <Box sx={{ display: "flex", flexWrap: "wrap", gap: 1, mb: 2 }}>
+                    {Object.entries(variables).map(([key, desc]) => (
+                      <Tooltip key={key} title={desc}>
+                        <Chip
+                          label={`{{${key}}}`}
+                          size="small"
+                          onClick={() => insertVariable(key)}
+                          color="primary"
+                          variant="outlined"
+                          sx={{ cursor: 'pointer' }}
+                        />
+                      </Tooltip>
+                    ))}
                   </Box>
-                  
-                  <TabPanel value={editorTab} index={0}>
-                    <Box sx={{ display: 'flex', justifyContent: 'flex-end', mb: 1 }}>
-                      <Button
-                        size="small"
-                        color="secondary"
-                        onClick={insertBasicTemplate}
-                        variant="outlined"
-                      >
-                        Chèn mẫu HTML cơ bản
-                      </Button>
-                    </Box>
+                  <Box sx={{ display: "flex", gap: 1, mb: 2 }}>
                     <TextField
+                      size="small"
+                      label="Thêm biến mới"
+                      value={newVariable}
+                      onChange={(e) => setNewVariable(e.target.value)}
                       fullWidth
-                      multiline
-                      rows={15}
-                      value={htmlContent}
-                      onChange={(e) => setHtmlContent(e.target.value)}
-                      variant="outlined"
-                      InputProps={{
-                        sx: { 
-                          fontFamily: 'monospace', 
-                          fontSize: '0.875rem',
-                        }
-                      }}
-                      sx={{ 
-                        '& .MuiOutlinedInput-root': {
-                          '& fieldset': { border: 'none' },
-                        } 
-                      }}
                     />
-                  </TabPanel>
-                  
-                  <TabPanel value={editorTab} index={1}>
+                    <Button variant="contained" onClick={addVariable}>
+                      Thêm
+                    </Button>
+                  </Box>
+
+                  <Paper variant="outlined" sx={{ p: 0, minHeight: 400 }}>
                     <Box 
-                      sx={{ 
-                        height: 'calc(15 * 1.5rem + 1rem)', 
-                        overflow: 'auto', 
-                        p: 2, 
-                        bgcolor: '#fff',
-                        border: '1px solid #ddd',
-                        borderTop: 'none',
-                      }}
-                    >
-                      <div 
-                        dangerouslySetInnerHTML={{ __html: previewHtml }} 
-                        style={{ fontFamily: 'Arial, sans-serif' }}
-                      />
+                    className="flex items-center justify-between"
+                    sx={{ borderBottom: 1, borderColor: 'divider' }}>
+                      <Tabs 
+                      className="w-fit h-fit"
+                      value={editorTab} onChange={handleTabChange} aria-label="email template editor tabs">
+                        <Tab
+                          icon={<IconCode size="18" />}
+                          iconPosition="start"
+                          label="HTML"
+                          id="editor-tab-0"
+                          aria-controls="editor-tabpanel-0"
+                        />
+                        <Tab
+                          icon={<IconEye size="18" />}
+                          iconPosition="start"
+                          label="Xem trước"
+                          id="editor-tab-1"
+                          aria-controls="editor-tabpanel-1"
+                        />
+                      </Tabs>
+                      {editorTab === 0 && (
+                          <Box className="flex items-center justify-end flex-1 w-full h-full gap-4 pr-4">
+                            <Button
+                              size="small"
+                              variant="contained"
+                              onClick={() => setPreviewHtml(htmlContent)}
+                              startIcon={<IconEye size="16" />}
+                            >
+                              Cập nhật xem trước
+                            </Button>
+                            <Button
+                            className="!text-white"
+                              size="small"
+                              color="secondary"
+                              onClick={insertBasicTemplate}
+                              variant="contained"
+                              startIcon={<IconHtml size="16" />}
+                            >
+                              Chèn mẫu HTML cơ bản
+                            </Button>
+                          </Box>
+                        )}
                     </Box>
-                  </TabPanel>
-                </Paper>
+
+                    <TabPanel value={editorTab} index={0}>
+
+                      <TextField
+                        fullWidth
+                        multiline
+                        rows={15}
+                        value={htmlContent}
+                        onChange={(e) => setHtmlContent(e.target.value)}
+                        variant="outlined"
+                        InputProps={{
+                          sx: {
+                            fontFamily: 'monospace',
+                            fontSize: '0.875rem',
+                          }
+                        }}
+                        sx={{
+                          '& .MuiOutlinedInput-root': {
+                            '& fieldset': { border: 'none' },
+                          }
+                        }}
+                      />
+                    </TabPanel>
+
+                    <TabPanel value={editorTab} index={1}>
+                      <Box
+                        sx={{
+                          height: 'calc(15 * 1.5rem + 1rem)',
+                          overflow: 'auto',
+                          p: 2,
+                          bgcolor: '#fff',
+                          border: '1px solid #ddd',
+                          borderTop: 'none',
+                        }}
+                      >
+                        <div
+                          dangerouslySetInnerHTML={{ __html: previewHtml }}
+                          style={{ fontFamily: 'Arial, sans-serif' }}
+                        />
+                      </Box>
+                    </TabPanel>
+                  </Paper>
+                </Box>
               </Box>
-            </Box>
 
-            <Divider sx={{ mt: 4, mb: 4 }} />
+              <Divider sx={{ mt: 4, mb: 4 }} />
 
-            <Box sx={{ display: "flex", justifyContent: "flex-end", gap: 2 }}>
-              <Button
-                variant="outlined"
-                startIcon={<IconRefresh size={18} />}
-                onClick={() => {
-                  if (response?.data) {
-                    const template = response.data;
-                    setName(template.name || "");
-                    setDescription(template.description || "");
-                    setSubject(template.subject || "");
-                    setHtmlContent(template.htmlContent || "");
-                    setPreviewHtml(template.htmlContent || "");
-                    setVariables(template.variables || {});
-                  }
-                }}
-              >
-                Khôi phục
-              </Button>
-              <Button
-                type="submit"
-                variant="contained"
-                startIcon={<IconDeviceFloppy size={18} />}
-                disabled={isPending}
-              >
-                {isPending ? "Đang lưu..." : "Lưu thay đổi"}
-              </Button>
-            </Box>
-          </form>
-        )}
+              <Box sx={{ display: "flex", justifyContent: "flex-end", gap: 2 }}>
+                <Button
+                  variant="outlined"
+                  startIcon={<IconRefresh size={18} />}
+                  onClick={() => {
+                    if (response?.data) {
+                      const template = response.data;
+                      setName(template.name || "");
+                      setDescription(template.description || "");
+                      setSubject(template.subject || "");
+                      setHtmlContent(template.htmlContent || "");
+                      setPreviewHtml(template.htmlContent || "");
+                      setVariables(template.variables || {});
+                    }
+                  }}
+                >
+                  Khôi phục
+                </Button>
+                <Button
+                  type="submit"
+                  variant="contained"
+                  startIcon={<IconDeviceFloppy size={18} />}
+                  disabled={isPending}
+                >
+                  {isPending ? "Đang lưu..." : "Lưu thay đổi"}
+                </Button>
+              </Box>
+            </form>
+          )}
+        </>
       </DashboardCard>
     </PageContainer>
   );

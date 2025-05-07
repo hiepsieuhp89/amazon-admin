@@ -24,14 +24,13 @@ import {
   DialogTitle,
   DialogContent,
   DialogActions,
-  Snackbar,
-  Alert,
 } from "@mui/material";
 import { useGetOrders } from "@/hooks/fake-order";
 import { useAddDelayMessage, useGetDeliveryStages } from "@/hooks/order";
 import { format } from "date-fns";
 import { vi } from "date-fns/locale";
 import { IconSearch, IconEye, IconClock } from "@tabler/icons-react";
+import { toast } from "react-toastify";
 
 const OrdersPage = () => {
   const [searchParams, setSearchParams] = useState({
@@ -42,15 +41,6 @@ const OrdersPage = () => {
   const [delayDialogOpen, setDelayDialogOpen] = useState(false);
   const [selectedOrder, setSelectedOrder] = useState<any>(null);
   const [delayMessage, setDelayMessage] = useState("");
-  const [snackbar, setSnackbar] = useState<{
-    open: boolean;
-    message: string;
-    severity: "success" | "error";
-  }>({
-    open: false,
-    message: "",
-    severity: "success",
-  });
 
   const { data: ordersResponse, isLoading } = useGetOrders(searchParams);
   const addDelayMessageMutation = useAddDelayMessage();
@@ -72,8 +62,9 @@ const OrdersPage = () => {
   };
 
   const openDelayDialog = (order: any) => {
+    console.log(order)
     setSelectedOrder(order);
-    setDelayMessage("");
+    setDelayMessage("Delay đơn hàng");
     setDelayDialogOpen(true);
   };
 
@@ -84,37 +75,26 @@ const OrdersPage = () => {
 
   const handleSubmitDelay = async () => {
     if (!delayMessage.trim()) {
-      setSnackbar({
-        open: true,
-        message: "Vui lòng nhập thông báo delay!",
-        severity: "error",
-      });
+      toast.error("Vui lòng nhập thông báo delay!");
       return;
     }
 
+    if (!selectedOrder?.id) {
+      toast.error("Không tìm thấy thông tin đơn hàng!");
+      return;
+    }
     try {
       await addDelayMessageMutation.mutateAsync({
         orderId: selectedOrder.id,
         payload: { message: delayMessage },
       });
       
-      setSnackbar({
-        open: true,
-        message: "Đã thêm thông báo delay thành công!",
-        severity: "success",
-      });
+      toast.success("Đã thêm thông báo delay thành công!");
       closeDelayDialog();
-    } catch (error) {
-      setSnackbar({
-        open: true,
-        message: "Không thể thêm thông báo delay. Vui lòng thử lại!",
-        severity: "error",
-      });
+    } catch (error: any) {
+      const errorMessage = error?.response?.data?.message || "Không thể thêm thông báo delay. Vui lòng thử lại!";
+      toast.error(errorMessage);
     }
-  };
-
-  const handleCloseSnackbar = () => {
-    setSnackbar((prev) => ({ ...prev, open: false }));
   };
 
   const getStatusColor = (status: string) => {
@@ -421,7 +401,7 @@ const OrdersPage = () => {
             />
           </Box>
         </DialogContent>
-        <DialogActions>
+        <DialogActions className="!px-6 !pb-4">
           <Button onClick={closeDelayDialog} color="inherit">
             Hủy
           </Button>
@@ -435,23 +415,6 @@ const OrdersPage = () => {
           </Button>
         </DialogActions>
       </Dialog>
-
-      {/* Snackbar for notifications */}
-      <Snackbar
-        open={snackbar.open}
-        autoHideDuration={5000}
-        onClose={handleCloseSnackbar}
-        anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
-      >
-        <Alert 
-          onClose={handleCloseSnackbar} 
-          severity={snackbar.severity}
-          variant="filled"
-          sx={{ width: '100%' }}
-        >
-          {snackbar.message}
-        </Alert>
-      </Snackbar>
     </PageContainer>
   );
 };

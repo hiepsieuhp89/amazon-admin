@@ -4,5 +4,6 @@ export interface IUpdateDeliveryStageRequest {
 
 export interface IAddDelayMessageRequest {
   message: string;
+  orderId?:string;
   delayTime?: string;
 } 

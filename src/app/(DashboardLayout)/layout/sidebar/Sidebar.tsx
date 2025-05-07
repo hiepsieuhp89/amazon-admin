@@ -32,6 +32,7 @@ const Sidebar = ({
     scrollbarGutter: "stable",
     width: sidebarWidth,
     boxSizing: "border-box",
+    backgroundColor: "#263238",
   };
 
   if (lgUp) {
@@ -46,16 +47,21 @@ const Sidebar = ({
           anchor="left"
           open={isSidebarOpen}
           variant="permanent"
+          sx={{
+            '& .MuiDrawer-paper': {
+              backgroundColor: "#263238",
+            }
+          }}
           PaperProps={{
-            sx: sidebarStyle,
-            backgroundColor: "#131921 !important",
-
+            sx: {
+              ...sidebarStyle,
+            }
           }}
         >
-            <Box px={0} className="!w-full flex justify-center">
-              <Logo />
-            </Box>
-            <SidebarItems />
+          <Box px={0} className="!w-full flex justify-center">
+            <Logo />
+          </Box>
+          <SidebarItems />
         </Drawer>
       </Box>
     );
@@ -67,11 +73,15 @@ const Sidebar = ({
       open={isMobileSidebarOpen}
       onClose={onSidebarClose}
       variant="temporary"
+      sx={{
+        '& .MuiDrawer-paper': {
+          backgroundColor: "#263238",
+        }
+      }}
       PaperProps={{
         sx: {
           ...sidebarStyle,
           boxShadow: (theme) => theme.shadows[8],
-          backgroundColor: "#131921",
         }
       }}
     >
