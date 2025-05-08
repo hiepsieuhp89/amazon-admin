@@ -4,7 +4,6 @@ import {
   Box,
   Button,
   Dialog,
-  DialogActions,
   DialogContent,
   DialogTitle,
   IconButton,
@@ -15,7 +14,6 @@ import {
   TableBody,
   TableContainer,
   TableHead,
-  TableFooter,
   Paper,
   Rating,
   TextField,
@@ -26,7 +24,6 @@ import {
 } from "@mui/material"
 import { IconEye, IconChevronDown, IconChevronUp, IconPhoto, IconMoodSadDizzy, IconMessageUser, IconBrandTelegram, IconSearch, IconX, IconPlus } from "@tabler/icons-react"
 import { message } from "antd"
-import { useRouter } from "next/navigation"
 import React, { useState } from "react"
 import { useGetAllUsers } from "@/hooks/user"
 import { useGetUserOrders, useCreateFakeReview, useDeleteFakeReview } from "@/hooks/fake-review"
@@ -133,7 +130,6 @@ function FakeReviewsPage() {
   }
 
   const renderOrderItems = (items: any[]) => {
-    console.log(items)
     return (
       <Box sx={{ pt: 2 }}>
         {items.map((item, index) => (

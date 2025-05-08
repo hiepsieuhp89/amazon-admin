@@ -57,7 +57,6 @@ const Table: React.FC = () => {
   const [page, setPage] = useState(0);
   const [searchQuery, setSearchQuery] = useState('');
 
-  // Mock data for contacts
   const contacts: Contact[] = [
     {
       id: "0d2c8a75-1253-47c1-8570-b28779be7493",
@@ -121,26 +120,8 @@ const Table: React.FC = () => {
   const handleToggleViewMode = (mode: 'list' | 'grid') => {
     setViewMode(mode);
   };
-
-  const handleToggleStar = (id: string) => {
-    console.log(`Toggle star for contact ${id}`);
-  };
-
   const isSelected = (id: string) => selectedContacts.indexOf(id) !== -1;
   const allSelected = displayedContacts.length > 0 && selectedContacts.length === displayedContacts.length;
-
-  const getCategoryChipColor = (category: string) => {
-    switch (category) {
-      case 'Company':
-        return { backgroundColor: '#e3f2fd', color: '#2196f3' };
-      case 'Banking':
-        return { backgroundColor: '#e8f5e9', color: '#4caf50' };
-      case 'Payments':
-        return { backgroundColor: '#fff8e1', color: '#ff9800' };
-      default:
-        return { backgroundColor: '#f5f5f5', color: '#9e9e9e' };
-    }
-  };
 
   return (
     <Paper elevation={1} sx={{ borderRadius: 1 }}>
@@ -234,13 +215,11 @@ const Table: React.FC = () => {
                       <StarIcon 
                         fontSize="small" 
                         sx={{ color: '#f9a825' }} 
-                        onClick={() => handleToggleStar(contact.id)}
                         aria-label="Starred"
                       />
                     ) : (
                       <StarBorderIcon 
                         fontSize="small" 
-                        onClick={() => handleToggleStar(contact.id)}
                         aria-label="Not starred"
                       />
                     )}

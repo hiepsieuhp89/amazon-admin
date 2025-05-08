@@ -44,9 +44,6 @@ const EmailTemplatesPage = () => {
   
   const emailTemplates = response?.data?.data || [];
   const total = response?.data?.meta?.itemCount || 0;
-  // console.log(response)
-  console.log(emailTemplates)
-
   const handleChangePage = (_event: any, newPage: number) => {
     setPage(newPage);
   };

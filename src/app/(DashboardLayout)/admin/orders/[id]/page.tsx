@@ -227,9 +227,6 @@ const OrderDetailPage = () => {
 
   const handleDeleteReview = (itemId: string) => {
     if (!order || !order.id) return;
-    
-    console.log("Deleting review for item:", itemId);
-    
     deleteReview(itemId, {
       onSuccess: () => {
         message.success("Xóa đánh giá sản phẩm thành công!");

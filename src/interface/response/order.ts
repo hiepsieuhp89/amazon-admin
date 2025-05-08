@@ -17,6 +17,13 @@ export interface IOrderDetail {
   address: string | null;
   items: IOrderItemDetail[];
   delayMessages: IOrderDelayMessage[];
+  orderTime: Date;
+  totalPaidAmount?: string;
+  totalProfit?: string;
+  delayStatus?: string;
+  user?: any;
+  shop?: any;
+  stageDelivery?: string;
 }
 
 export interface IOrderItemDetail {

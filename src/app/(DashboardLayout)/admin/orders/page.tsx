@@ -1,7 +1,7 @@
 "use client";
 import PageContainer from "@/component/container/PageContainer";
 import DashboardCard from "@/component/shared/DashboardCard";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   Box,
   Button,
@@ -26,11 +26,12 @@ import {
   DialogActions,
 } from "@mui/material";
 import { useGetOrders } from "@/hooks/fake-order";
-import { useAddDelayMessage, useGetDeliveryStages } from "@/hooks/order";
+import { useAddDelayMessage, useGetDeliveryStages, useGetOrderDetail } from "@/hooks/order";
 import { format } from "date-fns";
 import { vi } from "date-fns/locale";
 import { IconSearch, IconEye, IconClock } from "@tabler/icons-react";
 import { toast } from "react-toastify";
+import { formatTime } from "@/utils";
 
 const OrdersPage = () => {
   const [searchParams, setSearchParams] = useState({
@@ -41,8 +42,20 @@ const OrdersPage = () => {
   const [delayDialogOpen, setDelayDialogOpen] = useState(false);
   const [selectedOrder, setSelectedOrder] = useState<any>(null);
   const [delayMessage, setDelayMessage] = useState("");
+  const [isDetailView, setIsDetailView] = useState(false);
 
-  const { data: ordersResponse, isLoading } = useGetOrders(searchParams);
+  // Sử dụng searchParams để xác định xem có phải là tìm kiếm chi tiết hay không
+  useEffect(() => {
+    setIsDetailView(searchParams.search.length === 36);
+  }, [searchParams.search]);
+
+  // Gọi hook dựa vào trạng thái isDetailView
+  const { data: ordersResponse, isLoading: isLoadingOrders } = useGetOrders(
+    !isDetailView ? searchParams : { page: 1, take: 0, search: "" }
+  );
+  const { data: orderDetail, isLoading: isLoadingOrderDetail } = useGetOrderDetail(
+    isDetailView ? searchParams.search : ""
+  );
   const addDelayMessageMutation = useAddDelayMessage();
   const { data: deliveryStagesData, isLoading: isLoadingStages } = useGetDeliveryStages('SHIPPING');
 
@@ -62,7 +75,6 @@ const OrdersPage = () => {
   };
 
   const openDelayDialog = (order: any) => {
-    console.log(order)
     setSelectedOrder(order);
     setDelayMessage("Delay đơn hàng");
     setDelayDialogOpen(true);
@@ -143,7 +155,9 @@ const OrdersPage = () => {
   };
 
   const formatCurrency = (amount: string | number) => {
-    return parseFloat(amount as string || '0').toLocaleString("vi-VN", {
+    return (parseFloat(amount as string) || 0).toLocaleString("en-US", {
+      style: "currency",
+      currency: "USD",
       minimumFractionDigits: 2,
       maximumFractionDigits: 2,
     });
@@ -181,6 +195,322 @@ const OrdersPage = () => {
     if (index < (2 * totalStages) / 3) return "info";
     return "success";
   };
+
+  // Hiển thị chi tiết đơn hàng từ orderDetail
+  const renderOrderDetail = () => {
+    if (isLoadingOrderDetail) {
+      return (
+        <Box sx={{ display: "flex", justifyContent: "center", p: 4 }}>
+          <CircularProgress />
+        </Box>
+      );
+    }
+
+    if (!orderDetail) {
+      return (
+        <Box sx={{ p: 3, textAlign: "center" }}>
+          <Typography variant="body1">Không tìm thấy đơn hàng</Typography>
+        </Box>
+      );
+    }
+
+    const order = orderDetail.data;
+
+    return (
+      <Box sx={{ overflowX: "auto" }}>
+        <TableContainer component={Paper}>
+          <Table sx={{ minWidth: 1000 }}>
+            <TableHead>
+              <TableRow>
+                <TableCell sx={{ fontWeight: "bold" }}>ID đơn hàng</TableCell>
+                <TableCell sx={{ fontWeight: "bold" }}>Ngày tạo đơn hàng</TableCell>
+                <TableCell sx={{ fontWeight: "bold" }}>Ngày đặt hàng</TableCell>
+                <TableCell sx={{ fontWeight: "bold" }}>Khách hàng</TableCell>
+                <TableCell sx={{ fontWeight: "bold" }}>Cửa hàng</TableCell>
+                <TableCell sx={{ fontWeight: "bold" }} align="right">Tổng tiền</TableCell>
+                <TableCell sx={{ fontWeight: "bold" }} align="right">Giá nhập</TableCell>
+                <TableCell sx={{ fontWeight: "bold" }} align="right">Lợi nhuận</TableCell>
+                <TableCell sx={{ fontWeight: "bold" }}>Trạng thái</TableCell>
+                <TableCell sx={{ fontWeight: "bold" }}>Tiến độ</TableCell>
+                <TableCell sx={{ fontWeight: "bold" }}>Tiến trình</TableCell>
+                <TableCell sx={{ fontWeight: "bold" }} align="center">Thao tác</TableCell>
+              </TableRow>
+            </TableHead>
+            <TableBody>
+              <TableRow>
+                <TableCell>
+                  <Typography variant="body2" fontWeight="medium">
+                    {order.id.substring(0, 8)}...
+                  </Typography>
+                </TableCell>
+                <TableCell>
+                  <Typography variant="body2">
+                    {formatDate(order.createdAt)}
+                  </Typography>
+                </TableCell>
+                <TableCell>
+                  <Typography variant="body2">
+                    {
+                      formatTime(order.orderTime)
+                    }
+                  </Typography>
+                </TableCell>
+                <TableCell>
+                  <Typography variant="body2" fontWeight="medium">
+                    {order.user?.fullName || "N/A"}
+                  </Typography>
+                  <Typography variant="caption" color="textSecondary">
+                    {order.email || order.user?.email || "N/A"}
+                  </Typography>
+                </TableCell>
+                <TableCell>
+                  <Typography variant="body2" fontWeight="medium">
+                    {order.shop?.shopName || order.shop?.fullName || "N/A"}
+                  </Typography>
+                  <Typography variant="caption" color="textSecondary">
+                    {order.shop?.username || "N/A"}
+                  </Typography>
+                </TableCell>
+                <TableCell align="right">
+                  <Typography variant="body2" fontWeight="medium">
+                    {formatCurrency(order.totalAmount)}
+                  </Typography>
+                </TableCell>
+                <TableCell align="right">
+                  <Typography variant="body2" fontWeight="medium">
+                    {formatCurrency(order.totalPaidAmount || 0)}
+                  </Typography>
+                </TableCell>
+                <TableCell align="right">
+                  <Typography variant="body2" fontWeight="medium" color="success.main">
+                    {formatCurrency(order.totalProfit || 0)}
+                  </Typography>
+                </TableCell>
+                <TableCell>
+                  <Chip
+                    label={order.status}
+                    color={getStatusColor(order.status)}
+                    size="small"
+                    sx={{ fontWeight: "medium" }}
+                  />
+                </TableCell>
+                <TableCell>
+                  <Tooltip title={getDelayStatusText(order.delayStatus || "NORMAL")}> 
+                    <Chip
+                      label={getDelayStatusText(order.delayStatus || "NORMAL")}
+                      color={getDelayStatusColor(order.delayStatus || "NORMAL")}
+                      size="small"
+                      variant="outlined"
+                    />
+                  </Tooltip>
+                </TableCell>
+                <TableCell>
+                  <Tooltip title={getStageName(order.stageDelivery || order.deliveryStage)}>
+                    <Chip
+                      label={getStageName(order.stageDelivery || order.deliveryStage)}
+                      color={getStageColor(order.stageDelivery || order.deliveryStage)}
+                      size="small"
+                    />
+                  </Tooltip>
+                </TableCell>
+                <TableCell align="center">
+                  <Stack direction="row" spacing={1} justifyContent="center">
+                    <Tooltip title="Xem chi tiết">
+                      <IconButton
+                        size="small"
+                        color="primary"
+                        href={`/admin/orders/${order.id}`}
+                      >
+                        <IconEye size={18} />
+                      </IconButton>
+                    </Tooltip>
+                    <Tooltip title="Thông báo delay">
+                      <IconButton
+                        size="small"
+                        color="warning"
+                        onClick={() => openDelayDialog(order)}
+                      >
+                        <IconClock size={18} />
+                      </IconButton>
+                    </Tooltip>
+                  </Stack>
+                </TableCell>
+              </TableRow>
+            </TableBody>
+          </Table>
+        </TableContainer>
+      </Box>
+    );
+  };
+
+  // Hiển thị danh sách đơn hàng từ ordersResponse
+  const renderOrdersList = () => {
+    if (isLoadingOrders || isLoadingStages) {
+      return (
+        <Box sx={{ display: "flex", justifyContent: "center", p: 4 }}>
+          <CircularProgress />
+        </Box>
+      );
+    }
+
+    return (
+      <>
+        <Box sx={{ overflowX: "auto" }}>
+          <TableContainer component={Paper}>
+            <Table sx={{ minWidth: 1000 }}>
+              <TableHead>
+                <TableRow>
+                  <TableCell sx={{ fontWeight: "bold" }}>ID đơn hàng</TableCell>
+                  <TableCell sx={{ fontWeight: "bold" }}>Ngày tạo đơn hàng</TableCell>
+                  <TableCell sx={{ fontWeight: "bold" }}>Ngày đặt hàng</TableCell>
+                  <TableCell sx={{ fontWeight: "bold" }}>Khách hàng</TableCell>
+                  <TableCell sx={{ fontWeight: "bold" }}>Cửa hàng</TableCell>
+                  <TableCell sx={{ fontWeight: "bold" }} align="right">Tổng tiền</TableCell>
+                  <TableCell sx={{ fontWeight: "bold" }} align="right">Giá nhập</TableCell>
+                  <TableCell sx={{ fontWeight: "bold" }} align="right">Lợi nhuận</TableCell>
+                  <TableCell sx={{ fontWeight: "bold" }}>Trạng thái</TableCell>
+                  <TableCell sx={{ fontWeight: "bold" }}>Tiến độ</TableCell>
+                  <TableCell sx={{ fontWeight: "bold" }}>Tiến trình</TableCell>
+                  <TableCell sx={{ fontWeight: "bold" }} align="center">Thao tác</TableCell>
+                </TableRow>
+              </TableHead>
+              <TableBody>
+                {ordersResponse?.data?.data?.map((order: any) => (
+                  <TableRow key={order.id}>
+                    <TableCell>
+                      <Typography variant="body2" fontWeight="medium">
+                        {order.id.substring(0, 8)}...
+                      </Typography>
+                    </TableCell>
+                    <TableCell>
+                      <Typography variant="body2">
+                        {formatDate(order.createdAt || order.createdAt)}
+                      </Typography>
+                    </TableCell>
+                    <TableCell>
+                      <Typography variant="body2">
+                        {formatDate(order.orderTime || order.orderTime)}
+                      </Typography>
+                    </TableCell>
+                    <TableCell>
+                      <Typography variant="body2" fontWeight="medium">
+                        {order.user?.fullName || "N/A"}
+                      </Typography>
+                      <Typography variant="caption" color="textSecondary">
+                        {order.email || order.user?.email || "N/A"}
+                      </Typography>
+                    </TableCell>
+                    <TableCell>
+                      <Typography variant="body2" fontWeight="medium">
+                        {order.shop?.shopName || "N/A"}
+                      </Typography>
+                      <Typography variant="caption" color="textSecondary">
+                        {order.shop?.username || "N/A"}
+                      </Typography>
+                    </TableCell>
+                    <TableCell align="right">
+                      <Typography variant="body2" fontWeight="medium">
+                        {formatCurrency(order.totalAmount)}
+                      </Typography>
+                    </TableCell>
+                    <TableCell align="right">
+                      <Typography variant="body2" fontWeight="medium">
+                        {formatCurrency(order.totalPaidAmount)}
+                      </Typography>
+                    </TableCell>
+                    <TableCell align="right">
+                      <Typography variant="body2" fontWeight="medium" color="success.main">
+                        {formatCurrency(order.totalProfit)}
+                      </Typography>
+                    </TableCell>
+                    <TableCell>
+                      <Chip
+                        label={order.status}
+                        color={getStatusColor(order.status)}
+                        size="small"
+                        sx={{ fontWeight: "medium" }}
+                      />
+                    </TableCell>
+                    <TableCell>
+                      <Tooltip title={getDelayStatusText(order.delayStatus)}>
+                        <Chip
+                          label={getDelayStatusText(order.delayStatus)}
+                          color={getDelayStatusColor(order.delayStatus)}
+                          size="small"
+                          variant="outlined"
+                        />
+                      </Tooltip>
+                    </TableCell>
+                    <TableCell>
+                      <Tooltip title={getStageName(order.stageId)}>
+                        <Chip
+                          label={getStageName(order.stageId)}
+                          color={getStageColor(order.stageId)}
+                          size="small"
+                        />
+                      </Tooltip>
+                    </TableCell>
+                    <TableCell align="center">
+                      <Stack direction="row" spacing={1} justifyContent="center">
+                        <Tooltip title="Xem chi tiết">
+                          <IconButton
+                            size="small"
+                            color="primary"
+                            href={`/admin/orders/${order.id}`}
+                          >
+                            <IconEye size={18} />
+                          </IconButton>
+                        </Tooltip>
+                        <Tooltip title="Thông báo delay">
+                          <IconButton
+                            size="small"
+                            color="warning"
+                            onClick={() => openDelayDialog(order)}
+                          >
+                            <IconClock size={18} />
+                          </IconButton>
+                        </Tooltip>
+                      </Stack>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </TableContainer>
+        </Box>
+
+        {(!ordersResponse?.data?.data ||
+          ordersResponse.data.data.length === 0) && (
+          <Box sx={{ p: 3, textAlign: "center" }}>
+            <Typography variant="body1">Không có đơn hàng nào</Typography>
+          </Box>
+        )}
+
+        {ordersResponse?.data?.total !== undefined && (
+          <Box
+            sx={{
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "center",
+              mt: 3,
+              px: 2,
+            }}
+          >
+            <Typography variant="body2" color="textSecondary">
+              Tổng cộng: {ordersResponse.data.total || 0} đơn hàng
+            </Typography>
+            <Pagination
+              count={Math.ceil((ordersResponse.data.total || 0) / searchParams.take)}
+              page={searchParams.page}
+              onChange={handlePageChange}
+              color="primary"
+            />
+          </Box>
+        )}
+      </>
+    );
+  };
+
   return (
     <PageContainer
       title="Quản lý đơn hàng"
@@ -215,166 +545,8 @@ const OrdersPage = () => {
             </Button>
           </Box>
 
-          {isLoading || isLoadingStages ? (
-            <Box sx={{ display: "flex", justifyContent: "center", p: 4 }}>
-              <CircularProgress />
-            </Box>
-          ) : (
-            <>
-              <Box sx={{ overflowX: "auto" }}>
-                <TableContainer component={Paper}>
-                  <Table sx={{ minWidth: 1000 }}>
-                    <TableHead>
-                      <TableRow>
-                        <TableCell sx={{ fontWeight: "bold" }}>ID đơn hàng</TableCell>
-                        <TableCell sx={{ fontWeight: "bold" }}>Ngày tạo đơn hàng</TableCell>
-                        <TableCell sx={{ fontWeight: "bold" }}>Ngày đặt hàng</TableCell>
-                        <TableCell sx={{ fontWeight: "bold" }}>Khách hàng</TableCell>
-                        <TableCell sx={{ fontWeight: "bold" }}>Cửa hàng</TableCell>
-                        <TableCell sx={{ fontWeight: "bold" }} align="right">Tổng tiền</TableCell>
-                        <TableCell sx={{ fontWeight: "bold" }} align="right">Giá nhập</TableCell>
-                        <TableCell sx={{ fontWeight: "bold" }} align="right">Lợi nhuận</TableCell>
-                        <TableCell sx={{ fontWeight: "bold" }}>Trạng thái</TableCell>
-                        <TableCell sx={{ fontWeight: "bold" }}>Tiến độ</TableCell>
-                        <TableCell sx={{ fontWeight: "bold" }}>Tiến trình</TableCell>
-                        <TableCell sx={{ fontWeight: "bold" }} align="center">Thao tác</TableCell>
-                      </TableRow>
-                    </TableHead>
-                    <TableBody>
-                      {ordersResponse?.data?.data?.map((order: any) => (
-                        <TableRow key={order.id}>
-                          <TableCell>
-                            <Typography variant="body2" fontWeight="medium">
-                              {order.id.substring(0, 8)}...
-                            </Typography>
-                          </TableCell>
-                          <TableCell>
-                            <Typography variant="body2">
-                              {formatDate(order.createdAt || order.createdAt)}
-                            </Typography>
-                          </TableCell>
-                          <TableCell>
-                            <Typography variant="body2">
-                              {formatDate(order.orderTime || order.orderTime)}
-                            </Typography>
-                          </TableCell>
-                          <TableCell>
-                            <Typography variant="body2" fontWeight="medium">
-                              {order.user?.fullName || "N/A"}
-                            </Typography>
-                            <Typography variant="caption" color="textSecondary">
-                              {order.email || order.user?.email || "N/A"}
-                            </Typography>
-                          </TableCell>
-                          <TableCell>
-                            <Typography variant="body2" fontWeight="medium">
-                              {order.shop?.shopName || "N/A"}
-                            </Typography>
-                            <Typography variant="caption" color="textSecondary">
-                              {order.shop?.username || "N/A"}
-                            </Typography>
-                          </TableCell>
-                          <TableCell align="right">
-                            <Typography variant="body2" fontWeight="medium">
-                              ${formatCurrency(order.totalAmount)}
-                            </Typography>
-                          </TableCell>
-                          <TableCell align="right">
-                            <Typography variant="body2" fontWeight="medium">
-                              ${formatCurrency(order.totalPaidAmount)}
-                            </Typography>
-                          </TableCell>
-                          <TableCell align="right">
-                            <Typography variant="body2" fontWeight="medium" color="success.main">
-                              ${formatCurrency(order.totalProfit)}
-                            </Typography>
-                          </TableCell>
-                          <TableCell>
-                            <Chip
-                              label={order.status}
-                              color={getStatusColor(order.status)}
-                              size="small"
-                              sx={{ fontWeight: "medium" }}
-                            />
-                          </TableCell>
-                          <TableCell>
-                            <Tooltip title={getDelayStatusText(order.delayStatus)}>
-                              <Chip
-                                label={getDelayStatusText(order.delayStatus)}
-                                color={getDelayStatusColor(order.delayStatus)}
-                                size="small"
-                                variant="outlined"
-                              />
-                            </Tooltip>
-                          </TableCell>
-                          <TableCell>
-                            <Tooltip title={getStageName(order.stageId)}>
-                              <Chip
-                                label={getStageName(order.stageId)}
-                                color={getStageColor(order.stageId)}
-                                size="small"
-                              />
-                            </Tooltip>
-                          </TableCell>
-                          <TableCell align="center">
-                            <Stack direction="row" spacing={1} justifyContent="center">
-                              <Tooltip title="Xem chi tiết">
-                                <IconButton
-                                  size="small"
-                                  color="primary"
-                                  href={`/admin/orders/${order.id}`}
-                                >
-                                  <IconEye size={18} />
-                                </IconButton>
-                              </Tooltip>
-                              <Tooltip title="Thông báo delay">
-                                <IconButton
-                                  size="small"
-                                  color="warning"
-                                  onClick={() => openDelayDialog(order)}
-                                >
-                                  <IconClock size={18} />
-                                </IconButton>
-                              </Tooltip>
-                            </Stack>
-                          </TableCell>
-                        </TableRow>
-                      ))}
-                    </TableBody>
-                  </Table>
-                </TableContainer>
-              </Box>
-
-              {(!ordersResponse?.data?.data ||
-                ordersResponse.data.data.length === 0) && (
-                <Box sx={{ p: 3, textAlign: "center" }}>
-                  <Typography variant="body1">Không có đơn hàng nào</Typography>
-                </Box>
-              )}
-
-              {ordersResponse?.data?.total !== undefined && (
-                <Box
-                  sx={{
-                    display: "flex",
-                    justifyContent: "space-between",
-                    alignItems: "center",
-                    mt: 3,
-                    px: 2,
-                  }}
-                >
-                  <Typography variant="body2" color="textSecondary">
-                    Tổng cộng: {ordersResponse.data.total || 0} đơn hàng
-                  </Typography>
-                  <Pagination
-                    count={Math.ceil((ordersResponse.data.total || 0) / searchParams.take)}
-                    page={searchParams.page}
-                    onChange={handlePageChange}
-                    color="primary"
-                  />
-                </Box>
-              )}
-            </>
-          )}
+          {/* Hiển thị dữ liệu dựa vào trạng thái tìm kiếm */}
+          {isDetailView ? renderOrderDetail() : renderOrdersList()}
         </Box>
       </DashboardCard>
 
