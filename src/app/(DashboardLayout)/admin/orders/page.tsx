@@ -104,8 +104,13 @@ const OrdersPage = () => {
       toast.success("Đã thêm thông báo delay thành công!");
       closeDelayDialog();
     } catch (error: any) {
-      const errorMessage = error?.response?.data?.message || "Không thể thêm thông báo delay. Vui lòng thử lại!";
-      toast.error(errorMessage);
+      // Kiểm tra nếu message chính xác là "Order not found"
+      if (error?.response?.data?.message === "Order not found") {
+        toast.error("Đơn hàng không ở trạng thái SHIPPING");
+      } else {
+        const errorMessage = error?.response?.data?.message || "Không thể thêm thông báo delay. Vui lòng thử lại!";
+        toast.error(errorMessage);
+      }
     }
   };
 
