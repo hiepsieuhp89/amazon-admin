@@ -102,12 +102,8 @@ export default function CreateUserPage() {
       isValid = false
     }
 
-    // Validate phone
-    const phoneRegex = /^[0-9]{10,11}$/
-    if (!phoneRegex.test(formData.phone)) {
-      newErrors.phone = "Số điện thoại không hợp lệ (10-11 số)"
-      isValid = false
-    }
+    // No longer validate phone number format - accept any number with any length
+    // The error message for phone is kept empty to allow any input
 
     setErrors(newErrors)
     return isValid

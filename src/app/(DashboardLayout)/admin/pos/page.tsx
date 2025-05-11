@@ -277,13 +277,6 @@ const AdminPosPage = () => {
       return
     }
 
-    // Kiểm tra số điện thoại hợp lệ
-    const phoneRegex = /^\+?[0-9]{10,15}$/;
-    if (selectedUser.phone && !phoneRegex.test(selectedUser.phone)) {
-      message.warning("Số điện thoại không hợp lệ. Vui lòng nhập số điện thoại có từ 10-15 chữ số");
-      return;
-    }
-
     // Combine date with hour, minute, second only at order creation time
     const finalOrderDateTime = orderDateTime
       .hour(hour)
