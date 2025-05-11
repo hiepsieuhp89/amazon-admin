@@ -35,7 +35,7 @@ import {
   InputAdornment,
   OutlinedInput,
 } from "@mui/material";
-import { IconCopy, IconTrash, IconUser, IconInfoCircle, IconBan, IconSearch } from "@tabler/icons-react";
+import { IconCopy, IconTrash, IconUser, IconInfoCircle, IconBan, IconSearch, IconPlus, IconId, IconBrandTelegram } from "@tabler/icons-react";
 import { useState, useEffect } from "react";
 import { toast } from "react-toastify";
 
@@ -54,13 +54,13 @@ const InvitationCodesPage = () => {
   const [totalPages, setTotalPages] = useState(1);
 
   // Get all invitation codes
-  const { data, isLoading, refetch } = useGetAllInvitationCodes({ 
-    page, 
-    take, 
+  const { data, isLoading, refetch } = useGetAllInvitationCodes({
+    page,
+    take,
     order,
-    search: search.trim() ? search : undefined 
+    search: search.trim() ? search : undefined
   });
-  
+
   useEffect(() => {
     if (data?.data?.total) {
       const calculatedTotalPages = Math.ceil(data.data.total / take);
@@ -70,10 +70,10 @@ const InvitationCodesPage = () => {
 
   // Get user details when selectedUserId is available
   const { data: userData, isLoading: isLoadingUser } = useGetUserById(selectedUserId || "");
-  
+
   // Create invitation codes mutation
   const createInvitationCodesMutation = useCreateInvitationCodes();
-  
+
   // Delete invitation code mutation
   const deleteInvitationCodeMutation = useDeleteInvitationCode();
 
@@ -220,15 +220,25 @@ const InvitationCodesPage = () => {
         <Button
           variant="contained"
           color="primary"
+          sx={{
+            backgroundColor: "#1976d2 !important",
+            minWidth: '80px',
+            boxShadow: 'none',
+            '&:hover': {
+              boxShadow: '0 4px 8px rgba(0,0,0,0.1)',
+            },
+            textTransform: "none"
+          }}
           onClick={handleClickOpen}
+          endIcon={<IconPlus size={16} />}
         >
-          Tạo mã mời mới
+          Tạo mã mời
         </Button>
       </Box>
 
       {/* Filter & Search Section */}
       <Paper elevation={3} sx={{ p: 2, mb: 3 }}>
-        <Box  alignItems="center">
+        <Box display="grid" gridTemplateColumns="1fr 1fr 1fr" gap={2}>
           <Box  >
             <FormControl fullWidth variant="outlined" size="small">
               <OutlinedInput
@@ -350,7 +360,7 @@ const InvitationCodesPage = () => {
                               </IconButton>
                             </Tooltip>
                           )}
-                          
+
                           {/* Delete button */}
                           <Tooltip title="Xóa mã mời">
                             <IconButton
@@ -368,12 +378,12 @@ const InvitationCodesPage = () => {
                 </TableBody>
               </Table>
             </TableContainer>
-            
+
             {/* Pagination */}
             <Box sx={{ display: "flex", justifyContent: "center", pt: 3 }}>
-              <Pagination 
-                count={totalPages} 
-                page={page} 
+              <Pagination
+                count={totalPages}
+                page={page}
                 onChange={handlePageChange}
                 color="primary"
                 showFirstButton
@@ -386,13 +396,14 @@ const InvitationCodesPage = () => {
 
       {/* Create Invitation Code Dialog */}
       <Dialog open={open} onClose={handleClose}>
-        <DialogTitle>Tạo mã mời mới</DialogTitle>
-        <DialogContent>
-          <Box  sx={{ mt: 1 }}>
+        <DialogTitle className="border border-b !p-4 bg-gray-100">Tạo mã mời mới</DialogTitle>
+        <DialogContent className="mt-2 !p-4 min-w-[400px]">
+          <Box sx={{ mt: 1, display: "flex", gap: 2, flexDirection: "column" }}>
             <Box >
               <TextField
                 label="Số lượng mã mời"
                 type="number"
+                size="small"
                 value={count}
                 onChange={(e) => setCount(Number(e.target.value))}
                 fullWidth
@@ -403,6 +414,7 @@ const InvitationCodesPage = () => {
               <TextField
                 label="Thời gian hết hạn (phút)"
                 type="number"
+                size="small"
                 value={expirationMinutes}
                 onChange={(e) => setExpirationMinutes(Number(e.target.value))}
                 fullWidth
@@ -411,13 +423,24 @@ const InvitationCodesPage = () => {
             </Box>
           </Box>
         </DialogContent>
-        <DialogActions>
-          <Button onClick={handleClose}>Hủy</Button>
+        <DialogActions className="border border-t !p-4 bg-gray-100">
+          <Button 
+          variant="outlined"
+          onClick={handleClose}>Hủy</Button>
           <Button
             onClick={handleCreateInvitationCodes}
             variant="contained"
             color="primary"
             disabled={createInvitationCodesMutation.isPending}
+            sx={{
+              backgroundColor: "#1976d2 !important",
+              minWidth: '80px',
+              boxShadow: 'none',
+              '&:hover': {
+                boxShadow: '0 4px 8px rgba(0,0,0,0.1)',
+              },
+              textTransform: "none"
+            }}
           >
             {createInvitationCodesMutation.isPending ? "Đang tạo..." : "Tạo mã mời"}
           </Button>
@@ -426,22 +449,31 @@ const InvitationCodesPage = () => {
 
       {/* Deactivate Invitation Code Dialog */}
       <Dialog open={deactivateDialogOpen} onClose={handleDeactivateDialogClose}>
-        <DialogTitle>Xác nhận hủy kích hoạt</DialogTitle>
-        <DialogContent>
-          <Typography>
+        <DialogTitle className="border border-b !p-4 bg-gray-100">Xác nhận hủy kích hoạt</DialogTitle>
+        <DialogContent className="mt-2 !p-4">
+          <Typography
+          >
             Bạn có chắc chắn muốn hủy kích hoạt mã mời <strong>{selectedCode}</strong>?
           </Typography>
           <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
             Chỉ admin và super admin có thể hủy kích hoạt mã mời. Super admin có thể hủy mã mời của bất kỳ ai, admin chỉ có thể hủy mã mời do chính mình tạo ra.
           </Typography>
         </DialogContent>
-        <DialogActions>
-          <Button onClick={handleDeactivateDialogClose}>Hủy</Button>
+        <DialogActions className="border border-t !p-4 bg-gray-100">
+          <Button variant="outlined" onClick={handleDeactivateDialogClose}>Hủy</Button>
           <Button
-            onClick={handleDeactivateInvitationCode}
             variant="contained"
-            color="warning"
-            disabled={deactivateInvitationCodeMutation.isPending}
+            color="primary"
+            onClick={handleDeactivateInvitationCode}
+            sx={{
+              backgroundColor: "#1976d2 !important",
+              minWidth: '80px',
+              boxShadow: 'none',
+              '&:hover': {
+                boxShadow: '0 4px 8px rgba(0,0,0,0.1)',
+              },
+              textTransform: "none"
+            }}
           >
             {deactivateInvitationCodeMutation.isPending ? "Đang xử lý..." : "Xác nhận hủy kích hoạt"}
           </Button>
@@ -455,13 +487,13 @@ const InvitationCodesPage = () => {
         maxWidth="md"
         fullWidth
       >
-        <DialogTitle>
+        <DialogTitle className="border border-b !p-4 bg-gray-100">
           <Box sx={{ display: 'flex', alignItems: 'center' }}>
             <IconInfoCircle size={24} style={{ marginRight: 8 }} />
             Thông tin người dùng
           </Box>
         </DialogTitle>
-        <DialogContent>
+        <DialogContent className="mt-4 !p-4">
           {isLoadingUser ? (
             <Box sx={{ display: "flex", justifyContent: "center", p: 3 }}>
               <CircularProgress />
@@ -469,7 +501,7 @@ const InvitationCodesPage = () => {
           ) : userData?.data ? (
             <>
               <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
-                <Avatar 
+                <Avatar
                   sx={{ width: 64, height: 64, mr: 2 }}
                   src={userData.data.logoUrl || ""}
                 >
@@ -481,18 +513,18 @@ const InvitationCodesPage = () => {
                     {userData.data.email}
                   </Typography>
                   {userData.data.shopName && (
-                    <Chip 
-                      label={`${userData.data.shopName}`} 
-                      size="small" 
-                      color="primary" 
+                    <Chip
+                      label={`${userData.data.shopName}`}
+                      size="small"
+                      color="primary"
                       sx={{ mt: 0.5 }}
                     />
                   )}
                 </Box>
               </Box>
-              
+
               <Divider sx={{ my: 2 }} />
-              
+
               <Box >
                 <Box  >
                   <Typography variant="subtitle1" fontWeight="bold" gutterBottom>
@@ -500,39 +532,39 @@ const InvitationCodesPage = () => {
                   </Typography>
                   <List dense>
                     <ListItem>
-                      <ListItemText 
+                      <ListItemText
                         primary="ID người dùng"
                         secondary={userData.data.id}
                       />
                     </ListItem>
                     <ListItem>
-                      <ListItemText 
+                      <ListItemText
                         primary="Tên đăng nhập"
                         secondary={userData.data.username || "Không có"}
                       />
                     </ListItem>
                     <ListItem>
-                      <ListItemText 
+                      <ListItemText
                         primary="Số điện thoại"
                         secondary={userData.data.phone || "Không có"}
                       />
                     </ListItem>
                     <ListItem>
-                      <ListItemText 
+                      <ListItemText
                         primary="Vai trò"
                         secondary={
                           userData.data.role === "shop" ? "Người bán" :
-                          userData.data.role === "admin" ? "Quản trị viên" :
-                          userData.data.role === "supper_admin" ? "Quản trị viên cấp cao" : "Người dùng"
+                            userData.data.role === "admin" ? "Quản trị viên" :
+                              userData.data.role === "supper_admin" ? "Quản trị viên cấp cao" : "Người dùng"
                         }
                       />
                     </ListItem>
                     <ListItem>
-                      <ListItemText 
+                      <ListItemText
                         primary="Trạng thái"
                         secondary={
-                          <Chip 
-                            label={userData.data.isActive ? "Đang hoạt động" : "Đã khóa"} 
+                          <Chip
+                            label={userData.data.isActive ? "Đang hoạt động" : "Đã khóa"}
                             color={userData.data.isActive ? "success" : "error"}
                             size="small"
                           />
@@ -540,11 +572,11 @@ const InvitationCodesPage = () => {
                       />
                     </ListItem>
                     <ListItem>
-                      <ListItemText 
+                      <ListItemText
                         primary="Xác thực email"
                         secondary={
-                          <Chip 
-                            label={userData.data.isVerified ? "Đã xác thực" : "Chưa xác thực"} 
+                          <Chip
+                            label={userData.data.isVerified ? "Đã xác thực" : "Chưa xác thực"}
                             color={userData.data.isVerified ? "success" : "warning"}
                             size="small"
                           />
@@ -552,14 +584,14 @@ const InvitationCodesPage = () => {
                       />
                     </ListItem>
                     <ListItem>
-                      <ListItemText 
+                      <ListItemText
                         primary="Ngày tạo"
                         secondary={formatDate(userData.data.createdAt)}
                       />
                     </ListItem>
                   </List>
                 </Box>
-                
+
                 {userData.data.role === "shop" && (
                   <Box  >
                     <Typography variant="subtitle1" fontWeight="bold" gutterBottom>
@@ -567,31 +599,31 @@ const InvitationCodesPage = () => {
                     </Typography>
                     <List dense>
                       <ListItem>
-                        <ListItemText 
+                        <ListItemText
                           primary="Tên cửa hàng"
                           secondary={userData.data.shopName || "Chưa có"}
                         />
                       </ListItem>
                       <ListItem>
-                        <ListItemText 
+                        <ListItemText
                           primary="Địa chỉ cửa hàng"
                           secondary={userData.data.shopAddress || "Chưa có"}
                         />
                       </ListItem>
                       <ListItem>
-                        <ListItemText 
+                        <ListItemText
                           primary="Trạng thái cửa hàng"
                           secondary={
-                            <Chip 
+                            <Chip
                               label={
                                 userData.data.shopStatus === "APPROVED" ? "Đã duyệt" :
-                                userData.data.shopStatus === "PENDING" ? "Đang chờ duyệt" :
-                                userData.data.shopStatus === "REJECTED" ? "Đã từ chối" : "Không xác định"
-                              } 
+                                  userData.data.shopStatus === "PENDING" ? "Đang chờ duyệt" :
+                                    userData.data.shopStatus === "REJECTED" ? "Đã từ chối" : "Không xác định"
+                              }
                               color={
                                 userData.data.shopStatus === "APPROVED" ? "success" :
-                                userData.data.shopStatus === "PENDING" ? "warning" :
-                                userData.data.shopStatus === "REJECTED" ? "error" : "default"
+                                  userData.data.shopStatus === "PENDING" ? "warning" :
+                                    userData.data.shopStatus === "REJECTED" ? "error" : "default"
                               }
                               size="small"
                             />
@@ -599,25 +631,25 @@ const InvitationCodesPage = () => {
                         />
                       </ListItem>
                       <ListItem>
-                        <ListItemText 
+                        <ListItemText
                           primary="Đánh giá"
                           secondary={`${userData.data.stars || 0} sao (${userData.data.reputationPoints || 0} điểm)`}
                         />
                       </ListItem>
                       <ListItem>
-                        <ListItemText 
+                        <ListItemText
                           primary="Gói bán hàng"
                           secondary={userData.data.sellerPackage?.name || "Không có"}
                         />
                       </ListItem>
                       <ListItem>
-                        <ListItemText 
+                        <ListItemText
                           primary="Hạn gói bán hàng"
                           secondary={userData.data.sellerPackageExpiry ? formatDate(userData.data.sellerPackageExpiry) : "Không có"}
                         />
                       </ListItem>
                       <ListItem>
-                        <ListItemText 
+                        <ListItemText
                           primary="Số dư tài khoản"
                           secondary={userData.data.balance ? `${Number(userData.data.balance).toLocaleString('vi-VN')} đ` : "0 đ"}
                         />
@@ -631,21 +663,31 @@ const InvitationCodesPage = () => {
             <Typography>Không thể tải thông tin người dùng</Typography>
           )}
         </DialogContent>
-        <DialogActions>
+        <DialogActions className="!p-4 border-t border bg-gray-100">
           <Button onClick={handleUserDialogClose}>Đóng</Button>
           {userData?.data && (
-            <Button 
-              variant="contained" 
+            <Button
+              variant="contained"
               color="primary"
               href={`/admin/users/${userData.data.id}`}
               target="_blank"
+              sx={{
+                backgroundColor: "#1976d2 !important",
+                minWidth: '80px',
+                boxShadow: 'none',
+                '&:hover': {
+                  boxShadow: '0 4px 8px rgba(0,0,0,0.1)',
+                },
+                textTransform: "none"
+              }}
+              endIcon={<IconId size={16} />}
             >
               Xem chi tiết
             </Button>
           )}
         </DialogActions>
       </Dialog>
-    </Box>
+    </Box >
   );
 };
 

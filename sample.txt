@@ -1,0 +1,50 @@
+1. Main button
+<Button
+              variant="contained"
+              color="primary"
+              sx={{
+                backgroundColor: "#1976d2 !important",
+                minWidth: '80px',
+                boxShadow: 'none',
+                '&:hover': {
+                  boxShadow: '0 4px 8px rgba(0,0,0,0.1)',
+                },
+                textTransform: "none"
+              }}
+               // disabled={!content || isCreatingReview}
+              endIcon={<IconBrandTelegram size={16} />} >
+              'button text'
+</Button>
+
+2. text area
+<TextField
+              label="Nội dung đánh giá"
+              multiline
+              rows={4}
+              value={reviewData.content}
+              onChange={(e) =>
+                setReviewData((prev) => ({
+                  ...prev,
+                  content: e.target.value,
+                }))
+              }
+              fullWidth
+/>
+
+3. Tooltip Icon
+ <Tooltip title="Hủy kích hoạt mã mời">
+                              <IconButton
+                                color="warning"
+                                onClick={() => handleDeactivateDialogOpen(code.code)}
+                                sx={{ mr: 1 }}
+                              >
+                                <IconId size={18} />
+                              </IconButton>
+</Tooltip>
+
+4. Dialog
+<DialogTitle className="border border-b !p-4 bg-gray-100">
+<DialogContent className="mt-4 !p-4">
+<DialogActions className="!p-4 border-t border bg-gray-100">
+
+Dialog nhỏ --> Content: min-w-[400px]

@@ -16,6 +16,7 @@ import {
   InputAdornment,
   InputLabel,
   MenuItem,
+  OutlinedInput,
   Paper,
   Select,
   SelectChangeEvent,
@@ -33,11 +34,11 @@ import {
   Tooltip,
   Typography,
 } from "@mui/material";
-import { IconArrowLeft, IconEdit, IconEye, IconEyeOff, IconMessage, IconStar, IconTrash, IconUpload, IconX, IconZoomIn } from "@tabler/icons-react";
+import { IconArrowLeft, IconEdit, IconEye, IconEyeOff, IconMessage, IconStar, IconTrash, IconUpload, IconX, IconZoomIn, IconPhoto, IconPlus, IconWindmill } from "@tabler/icons-react";
 import { message } from "antd";
 import Image from "next/image";
 import { useParams, useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { useGetUserActionLogs } from "@/hooks/action-log";
 import { useUploadImage } from "@/hooks/image";
 import { useGetAllSellerPackages } from "@/hooks/seller-package";
@@ -111,10 +112,8 @@ function UserDetailPage() {
     email: "",
     phone: "",
     address: "",
-    // Thông tin người dùng
     username: "",
     fullName: "",
-    // Thông tin cửa hàng
     shopName: "",
     shopAddress: "",
     shopStatus: "PENDING",
@@ -122,7 +121,6 @@ function UserDetailPage() {
     stars: 0,
     reputationPoints: 0,
     logoUrl: "",
-    // Thông tin tài chính
     balance: 0,
     fedexBalance: 0,
     totalWithdrawn: 0,
@@ -130,23 +128,19 @@ function UserDetailPage() {
     totalDeliveredOrders: 0,
     totalProfit: 0,
     numberProduct: 0,
-    // Thông tin ngân hàng
     bankName: "",
     bankAccountNumber: "",
     bankAccountName: "",
     bankBranch: "",
     bankNumber: "",
     bankCode: "",
-    // Thông tin mật khẩu
     password: "",
     withdrawPassword: "",
     fedexPassword: "",
-    // Thông tin xác thực
     idCardType: "",
     idCardNumber: "",
     idCardFrontImage: "",
     idCardBackImage: "",
-    // Thông tin vai trò
     role: "",
   });
   const [errors, setErrors] = useState({
@@ -188,6 +182,8 @@ function UserDetailPage() {
       order: sortOrder,
     }
   );
+
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
 
   useEffect(() => {
     if (userData?.data) {
@@ -682,6 +678,54 @@ function UserDetailPage() {
     setImagePreviewDialogOpen(true);
   };
 
+  // Handle image upload for logo
+  const handleLogoUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const files = event.target.files;
+    if (!files || files.length === 0) return;
+
+    const file = files[0];
+
+    message.loading({ content: "Đang tải ảnh đại diện lên...", key: "uploadLogo" });
+
+    try {
+      const uploadResult = await uploadImageMutation.mutateAsync({
+        file: file,
+        isPublic: true,
+        description: `Ảnh đại diện của người dùng: ${formData.email}`
+      });
+
+      message.success({ content: "Tải ảnh đại diện thành công!", key: "uploadLogo" });
+
+      setFormData(prev => ({
+        ...prev,
+        logoUrl: uploadResult.data.url
+      }));
+    } catch (error) {
+      message.error({ content: "Có lỗi xảy ra khi tải ảnh đại diện lên", key: "uploadLogo" });
+      console.error(error);
+    }
+  };
+
+  // Handle removing the logo image
+  const handleRemoveLogo = () => {
+    setFormData(prev => ({
+      ...prev,
+      logoUrl: ""
+    }));
+  };
+
+  // Handle generating a random image for the logo
+  const handleGenerateLogo = () => {
+    const width = 100; // Default width
+    const height = 100; // Default height
+    const randomId = Math.floor(Math.random() * 10000);
+    const imageUrl = `https://picsum.photos/${width}/${height}?random=${randomId}`;
+    setFormData(prev => ({
+      ...prev,
+      logoUrl: imageUrl
+    }));
+  };
+
   if (isLoading) {
     return (
       <Box className="flex items-center justify-center p-6 py-12">
@@ -830,6 +874,77 @@ function UserDetailPage() {
                   disabled={!isEditing}
                 />
               </div>
+              
+              {/* User Logo Section */}
+              {userData?.data.role === "user" && (
+                <Box mt={4}>
+                  <Typography variant="h6" className="mb-4 font-medium">Ảnh đại diện người dùng</Typography>
+                  <Box mb={2}>
+                    <InputLabel className="mb-2">Upload ảnh đại diện</InputLabel>
+                    <FormControl fullWidth variant="outlined" disabled={!isEditing}>
+                      <OutlinedInput
+                        type="file"
+                        inputProps={{ multiple: false, accept: 'image/*' }}
+                        onChange={handleLogoUpload}
+                        startAdornment={
+                          <InputAdornment position="start">
+                            <IconPhoto />
+                          </InputAdornment>
+                        }
+                      />
+                    </FormControl>
+                    {uploadImageMutation.isPending && <CircularProgress size={24} className="mt-4" />}
+                    <Box sx={{ mt: 2, display: 'flex', gap: 2, flexWrap: 'wrap' }}>
+                      {formData.logoUrl && (
+                        <Box sx={{ position: 'relative', width: 100, height: 100 }}>
+                          <img
+                            draggable={false}
+                            src={formData.logoUrl}
+                            alt="User Avatar"
+                            style={{ width: 100, height: 100, objectFit: 'contain' }}
+                            className="rounded-[4px] border"
+                          />
+                          <IconButton
+                            size="small"
+                            className="!bg-red-100"
+                            sx={{
+                              position: 'absolute',
+                              top: 2,
+                              right: 2,
+                              background: 'rgba(255,255,255,0.7)'
+                            }}
+                            onClick={() => handleRemoveLogo()}
+                            disabled={!isEditing}
+                          >
+                            <IconX size={16} color="red" />
+                          </IconButton>
+                        </Box>
+                      )}
+                    </Box>
+                  </Box>
+                  {isEditing && (
+                    <Box mb={2} display="flex" gap={2}>
+                      <Button
+                        variant="outlined"
+                        onClick={handleGenerateLogo}
+                        endIcon={<IconWindmill size={16} />}
+                        disabled={!isEditing}
+                      >
+                        Generate Image
+                      </Button>
+                      {/* Reusing the ref for the logo upload input */}
+                      <input
+                        type="file"
+                        ref={fileInputRef}
+                        style={{ display: 'none' }}
+                        multiple={false} // Changed to false for single image upload
+                        accept='image/*'
+                        onChange={handleLogoUpload}
+                      />
+                    </Box>
+                  )}
+                </Box>
+              )}
 
               {/* Thông tin cửa hàng */}
               {userData?.data.role === "shop" &&
@@ -1297,7 +1412,6 @@ function UserDetailPage() {
                 />
               </div>
 
-              {/* Thông tin mật khẩu */}
               <Typography variant="h6" className="mt-6 font-medium">Thông tin mật khẩu</Typography>
               <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
                 <TextField

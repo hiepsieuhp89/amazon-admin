@@ -1,7 +1,7 @@
 'use client';
 
 import { LockOutlined, UserOutlined } from '@ant-design/icons';
-import { Button, Form, Input } from 'antd';
+import { Button, Form, Input, message } from 'antd';
 import { useRouter } from 'next/navigation';
 import { FormProps } from 'rc-field-form';
 import { setCookies } from '@/helper';
@@ -21,7 +21,7 @@ const SignInForm = () => {
     const router = useRouter();
     const { mutateAsync, isPending } = useSignIn()
     const { loginUser } = useUser()
-    const { handleErrorMessage } = useContext(MessageClientContext);
+    const { handleErrorMessage, handleSuccessMessage } = useContext(MessageClientContext);
     const onFinish: FormProps<FieldType>['onFinish'] = async (values: FieldType) => {
         try {
             const payload: ISignIn = {
@@ -33,10 +33,11 @@ const SignInForm = () => {
             if (response?.data?.accessToken) {
                 setCookies(response?.data?.accessToken)
                 loginUser(response?.data, response?.data?.accessToken)
+                handleSuccessMessage('Đăng nhập thành công!');
                 router.push('/')
             }
         } catch (error: any) {
-            handleErrorMessage(error?.response?.data?.message)
+            handleErrorMessage(error?.response?.data?.message);
         }
     };
 

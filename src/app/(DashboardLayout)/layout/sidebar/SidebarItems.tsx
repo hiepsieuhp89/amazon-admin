@@ -208,24 +208,6 @@ const Menuitems = [
       },
     ],
   },
-  // {
-  //   id: generateUniqueId(),
-  //   title: "Nhân viên",
-  //   icon: IconUsers,
-  //   href: "javascript:void(0)",
-  //   children: [
-  //     {
-  //       id: generateUniqueId(),
-  //       title: "Tất cả nhân viên",
-  //       href: "/admin/staffs",
-  //     },
-  //     {
-  //       id: generateUniqueId(),
-  //       title: "Quyền của nhân viên",
-  //       href: "/admin/staffs/permissions",
-  //     },
-  //   ],
-  // },
 ]
 
 const filterMenuItems = (items: any[], role?: string, shopName?: string) => {

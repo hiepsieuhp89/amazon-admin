@@ -48,7 +48,7 @@ instance.interceptors.response.use(
     if (err.response) {
       if (err.response.status === 403 || err.response.status === 401) {
         logout();
-        return
+        return Promise.reject(err);
       }
 
     }

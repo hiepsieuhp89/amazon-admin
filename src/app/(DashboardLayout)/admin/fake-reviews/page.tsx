@@ -21,6 +21,7 @@ import {
   InputLabel,
   OutlinedInput,
   InputAdornment,
+  Tooltip,
 } from "@mui/material"
 import { IconEye, IconChevronDown, IconChevronUp, IconPhoto, IconMoodSadDizzy, IconMessageUser, IconBrandTelegram, IconSearch, IconX, IconPlus } from "@tabler/icons-react"
 import { message } from "antd"
@@ -44,6 +45,8 @@ function FakeReviewsPage() {
   const [images, setImages] = useState<string[]>([])
   const [productReviewDialogOpen, setProductReviewDialogOpen] = useState(false)
   const [selectedProduct, setSelectedProduct] = useState<any>(null)
+
+  const fileInputRef = React.useRef<HTMLInputElement>(null);
 
   const { data: userData, isLoading, error } = useGetAllUsers({
     page,
@@ -92,16 +95,18 @@ function FakeReviewsPage() {
       <TableCell>{[user.address, user.ward, user.district, user.city].filter(Boolean).join(', ')}</TableCell>
       <TableCell>
         <Box className="flex items-center justify-center gap-4">
-          <IconButton
-            onClick={() => {
-              setSelectedUserId(user.id)
-              setOrdersDialogOpen(true)
-            }}
-            size="medium"
-            className="!bg-blue-100"
-          >
-            <IconEye size={18} className="text-blue-400" />
-          </IconButton>
+          <Tooltip title="Chi tiết đơn hàng">
+            <IconButton
+              color="primary"
+              onClick={() => {
+                setSelectedUserId(user.id)
+                setOrdersDialogOpen(true)
+              }}
+              sx={{ mr: 1 }}
+            >
+              <IconEye size={18} />
+            </IconButton>
+          </Tooltip>
         </Box>
       </TableCell>
     </TableRow>
@@ -350,6 +355,14 @@ function FakeReviewsPage() {
     setImages((prev) => prev.filter((_, i) => i !== index))
   }
 
+  const handleGenerateImage = () => {
+    const width = 100; // Default width
+    const height = 100; // Default height
+    const randomId = Math.floor(Math.random() * 10000);
+    const imageUrl = `https://picsum.photos/${width}/${height}?random=${randomId}`;
+    setImages((prev) => [...prev, imageUrl]);
+  };
+
   if (error) {
     return (
       <Box className="flex flex-col items-center justify-center min-h-screen gap-2 p-8 text-center">
@@ -502,6 +515,30 @@ function FakeReviewsPage() {
                   ))}
                 </Box>
               </Box>
+              <Box mb={2} display="flex" gap={2}>
+                <Button
+                  variant="outlined"
+                  onClick={() => fileInputRef.current?.click()}
+                  startIcon={<IconPhoto size={16} />}
+                >
+                  Chọn Image
+                </Button>
+                <Button
+                  variant="outlined"
+                  onClick={handleGenerateImage}
+                  startIcon={<IconPlus size={16} />}
+                >
+                  Generate Image
+                </Button>
+                <input
+                  type="file"
+                  ref={fileInputRef}
+                  style={{ display: 'none' }}
+                  multiple
+                  accept='image/*'
+                  onChange={handleImageUpload}
+                />
+              </Box>
             </Box>
           )}
           <Box className="flex justify-end gap-4 mt-6">
@@ -517,7 +554,8 @@ function FakeReviewsPage() {
                 boxShadow: 'none',
                 '&:hover': {
                   boxShadow: '0 4px 8px rgba(0,0,0,0.1)',
-                }
+                },
+                textTransform: 'none'
               }}
               endIcon={<IconBrandTelegram size={16} />}
               onClick={handleSubmitProductReview}>Gửi đánh giá</Button>

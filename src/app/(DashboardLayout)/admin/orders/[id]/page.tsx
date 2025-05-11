@@ -1190,7 +1190,8 @@ const OrderDetailPage = () => {
                 boxShadow: 'none',
                 '&:hover': {
                   boxShadow: '0 4px 8px rgba(0,0,0,0.1)',
-                }
+                },
+                textTransform: 'none'
               }}
               disabled={!content || isCreatingReview}
               endIcon={<IconBrandTelegram size={16} />}
