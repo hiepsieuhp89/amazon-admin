@@ -237,7 +237,7 @@ const OrdersPage = () => {
                 <TableCell sx={{ fontWeight: "bold" }} align="right">Lợi nhuận</TableCell>
                 <TableCell sx={{ fontWeight: "bold" }}>Trạng thái</TableCell>
                 <TableCell sx={{ fontWeight: "bold" }}>Tiến độ</TableCell>
-                <TableCell sx={{ fontWeight: "bold" }}>Tiến trình</TableCell>
+                <TableCell sx={{ fontWeight: "bold" }}>Ngày thanh toán</TableCell>
                 <TableCell sx={{ fontWeight: "bold" }} align="center">Thao tác</TableCell>
               </TableRow>
             </TableHead>
@@ -310,13 +310,9 @@ const OrdersPage = () => {
                   </Tooltip>
                 </TableCell>
                 <TableCell>
-                  <Tooltip title={getStageName(order.stageDelivery || order.deliveryStage)}>
-                    <Chip
-                      label={getStageName(order.stageDelivery || order.deliveryStage)}
-                      color={getStageColor(order.stageDelivery || order.deliveryStage)}
-                      size="small"
-                    />
-                  </Tooltip>
+                  <Typography variant="body2">
+                    {order.confirmedAt ? formatDate(order.confirmedAt) : "N/A"}
+                  </Typography>
                 </TableCell>
                 <TableCell align="center">
                   <Stack direction="row" spacing={1} justifyContent="center">
@@ -375,7 +371,7 @@ const OrdersPage = () => {
                   <TableCell sx={{ fontWeight: "bold" }} align="right">Lợi nhuận</TableCell>
                   <TableCell sx={{ fontWeight: "bold" }}>Trạng thái</TableCell>
                   <TableCell sx={{ fontWeight: "bold" }}>Tiến độ</TableCell>
-                  <TableCell sx={{ fontWeight: "bold" }}>Tiến trình</TableCell>
+                  <TableCell sx={{ fontWeight: "bold" }}>Ngày thanh toán</TableCell>
                   <TableCell sx={{ fontWeight: "bold" }} align="center">Thao tác</TableCell>
                 </TableRow>
               </TableHead>
@@ -447,13 +443,9 @@ const OrdersPage = () => {
                       </Tooltip>
                     </TableCell>
                     <TableCell>
-                      <Tooltip title={getStageName(order.stageId)}>
-                        <Chip
-                          label={getStageName(order.stageId)}
-                          color={getStageColor(order.stageId)}
-                          size="small"
-                        />
-                      </Tooltip>
+                      <Typography variant="body2">
+                        {order.confirmedAt ? formatDate(order.confirmedAt) : "N/A"}
+                      </Typography>
                     </TableCell>
                     <TableCell align="center">
                       <Stack direction="row" spacing={1} justifyContent="center">
