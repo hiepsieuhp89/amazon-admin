@@ -35,7 +35,6 @@ import { useDeleteUser, useGetAllUsers, useUpdateUser } from "@/hooks/user"
 import { useGetDeliveryStages, useGetOrderDetail, useUpdateDeliveryStage, useGetShopOrders } from "@/hooks/order"
 import { useGetAllEmailTemplates, useSendEmailByTemplate } from "@/hooks/emailTemplate"
 function ShopsPage() {
-  
     const router = useRouter()
     const [page, setPage] = useState(1)
     const [rowsPerPage, setRowsPerPage] = useState(10)

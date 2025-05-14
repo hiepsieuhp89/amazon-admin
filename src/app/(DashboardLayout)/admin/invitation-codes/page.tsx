@@ -221,7 +221,7 @@ const InvitationCodesPage = () => {
           variant="contained"
           color="primary"
           sx={{
-            backgroundColor: "#1976d2 !important",
+            backgroundColor: "#5D87FF !important",
             minWidth: '80px',
             boxShadow: 'none',
             '&:hover': {
@@ -433,7 +433,7 @@ const InvitationCodesPage = () => {
             color="primary"
             disabled={createInvitationCodesMutation.isPending}
             sx={{
-              backgroundColor: "#1976d2 !important",
+              backgroundColor: "#5D87FF !important",
               minWidth: '80px',
               boxShadow: 'none',
               '&:hover': {
@@ -466,7 +466,7 @@ const InvitationCodesPage = () => {
             color="primary"
             onClick={handleDeactivateInvitationCode}
             sx={{
-              backgroundColor: "#1976d2 !important",
+              backgroundColor: "#5D87FF !important",
               minWidth: '80px',
               boxShadow: 'none',
               '&:hover': {
@@ -672,7 +672,7 @@ const InvitationCodesPage = () => {
               href={`/admin/users/${userData.data.id}`}
               target="_blank"
               sx={{
-                backgroundColor: "#1976d2 !important",
+                backgroundColor: "#5D87FF !important",
                 minWidth: '80px',
                 boxShadow: 'none',
                 '&:hover': {

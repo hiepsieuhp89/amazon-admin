@@ -59,39 +59,25 @@ import Image from "next/image";
 import type React from "react";
 import { useState, useEffect, useCallback } from "react";
 import styles from "./storehouse.module.scss";
-import { AdapterDateFns } from "@mui/x-date-pickers/AdapterDateFns";
-import { LocalizationProvider, DateTimePicker } from "@mui/x-date-pickers";
 import { debounce } from "lodash";
 import { formatNumber } from "@/utils";
 import dayjs from "dayjs";
 import timezone from "dayjs/plugin/timezone";
 import utc from "dayjs/plugin/utc";
-
-// Extend dayjs with plugins
 dayjs.extend(utc);
 dayjs.extend(timezone);
 
 const AdminPosPage = () => {
   const [selectedProducts, setSelectedProducts] = useState<any[]>([]);
-  const [keyword, setKeyword] = useState("");
-  const [minPrice, setMinPrice] = useState<number | undefined>();
-  const [maxPrice, setMaxPrice] = useState<number | undefined>();
   const [totalSelectedProducts, setTotalSelectedProducts] = useState(0);
   const [quantities, setQuantities] = useState<{ [key: string]: number }>({});
   const [searchShop, setSearchShop] = useState("");
   const [selectedShopId, setSelectedShopId] = useState<string>("");
-  // Hook
   const { data: shopsData, isLoading: isLoadingShops } = useGetAllUsers({
     role: "shop",
     take: 9999999999,
     search: searchShop,
   });
-
-  const { data: usersData, isLoading: isLoadingUsers } = useGetAllUsers({
-    role: "user",
-    take: 9999999999,
-  });
-
   const [currentPage, setCurrentPage] = useState(1);
   const [rowsPerPage, setRowsPerPage] = useState(21);
   const { data: productsData, isLoading } = useGetAllShopProducts({
@@ -133,6 +119,8 @@ const AdminPosPage = () => {
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
   const [orderDateTime, setOrderDateTime] = useState(dayjs());
+  const [deliveryScope, setDeliveryScope] = useState<'domestic' | 'global'>('domestic');
+  const [orderStatusUI, setOrderStatusUI] = useState<string>('pending');
 
   const [hour, setHour] = useState(dayjs().hour());
   const [minute, setMinute] = useState(dayjs().minute());
@@ -303,6 +291,7 @@ const AdminPosPage = () => {
       address: selectedUser.address || "New York, USA",
       userId: selectedUser.id,
       orderTime: finalOrderDateTime.toISOString(),
+      deliveryScope: deliveryScope,
     };
 
     createFakeOrder(payload, {
@@ -849,6 +838,15 @@ const AdminPosPage = () => {
                           }
                           onClick={() => setViewMode("table")}
                           startIcon={<IconList />}
+                          sx={{
+                            backgroundColor: viewMode === "table" ? "#5D87FF !important" : "",
+                            minWidth: '80px',
+                            boxShadow: 'none',
+                            '&:hover': {
+                              boxShadow: '0 4px 8px rgba(0,0,0,0.1)',
+                            },
+                            textTransform: "none"
+                          }}
                         >
                           Bảng
                         </Button>
@@ -858,6 +856,15 @@ const AdminPosPage = () => {
                           }
                           onClick={() => setViewMode("grid")}
                           startIcon={<IconTable />}
+                          sx={{
+                            backgroundColor: viewMode === "grid" ? "#5D87FF !important" : "",
+                            minWidth: '80px',
+                            boxShadow: 'none',
+                            '&:hover': {
+                              boxShadow: '0 4px 8px rgba(0,0,0,0.1)',
+                            },
+                            textTransform: "none"
+                          }}
                         >
                           Lưới
                         </Button>
@@ -1210,7 +1217,7 @@ const AdminPosPage = () => {
                               {isLoadingValidUsers ? (
                                 <CircularProgress color="inherit" size={20} />
                               ) : null}
-                              s{params.InputProps.endAdornment}
+                              {params.InputProps.endAdornment}
                             </>
                           ),
                         }}
@@ -1539,13 +1546,14 @@ const AdminPosPage = () => {
                   )}
                 </Box>
               </Box>
-              <Box className="grid grid-cols-2 gap-2 mt-4">
+              <Box sx={{ display: 'flex', gap: 2, mt: 4, alignItems: 'center' }}>
                 <FormControl fullWidth>
                   <InputLabel>Trạng thái đơn hàng</InputLabel>
                   <Select
                     size="small"
                     label="Trạng thái đơn hàng"
-                    defaultValue="pending"
+                    value={orderStatusUI}
+                    onChange={(e) => setOrderStatusUI(e.target.value)}
                   >
                     <MenuItem value="pending">Đang chờ xử lý</MenuItem>
                     <MenuItem value="confirmed">Đã xác nhận</MenuItem>
@@ -1553,13 +1561,36 @@ const AdminPosPage = () => {
                     <MenuItem value="delivered">Đã giao hàng</MenuItem>
                   </Select>
                 </FormControl>
-
+                <FormControl fullWidth>
+                  <InputLabel>Phạm vi giao hàng</InputLabel>
+                  <Select
+                    size="small"
+                    label="Phạm vi giao hàng"
+                    value={deliveryScope}
+                    onChange={(e) => setDeliveryScope(e.target.value as 'domestic' | 'global')}
+                  >
+                    <MenuItem value="domestic">Nội địa</MenuItem>
+                    <MenuItem value="global">Quốc tế</MenuItem>
+                  </Select>
+                </FormControl>
+              </Box>
+              <Box sx={{ mt: 2, width: '100%' }}>
                 <Button
                   size="small"
                   variant="outlined"
                   fullWidth
                   onClick={handleCreateFakeOrder}
                   disabled={selectedProducts.length === 0 || !selectedUser}
+                  sx={{
+                    backgroundColor: selectedProducts.length === 0 || !selectedUser ? "#5D87FF90 !important" : "#5D87FF !important",
+                    minWidth: '80px',
+                    boxShadow: 'none',
+                    '&:hover': {
+                      boxShadow: '0 4px 8px rgba(0,0,0,0.1)',
+                    },
+                    color: "white !important",
+                    textTransform: "none"
+                  }}
                 >
                   Đặt hàng
                 </Button>
@@ -1790,13 +1821,12 @@ const AdminPosPage = () => {
                     style={{ color: "#3F6AD8" }}
                   />
                   <span className="mr-1 font-bold">Thời gian đặt hàng:</span>
-
                   <Box
                     sx={{
                       display: "flex",
                       flexWrap: "wrap",
                       gap: 1,
-                      mt: 1,
+                      mt: 2,
                       width: "100%",
                     }}
                   >
@@ -1944,7 +1974,6 @@ const AdminPosPage = () => {
                 </Box>
               </Paper>
             </Box>
-
             <Box
               sx={{
                 mt: 3,
@@ -1961,7 +1990,7 @@ const AdminPosPage = () => {
               >
                 Tổng cộng:
               </Typography>
-              <Box className="h-6 bg-[#E6F9FF] text-[#22E0BE] font-normal rounded-[4px] px-2 text-sm flex items-center justify-center border-none w-fit">
+              <Box className="h-6 bg-blue-50 text-blue-500 font-normal rounded-[4px] px-2 text-sm flex items-center justify-center border-none w-fit">
                 $
                 {formatNumber(
                   selectedProducts.reduce(

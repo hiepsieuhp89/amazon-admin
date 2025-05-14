@@ -260,7 +260,7 @@ function FakeReviewsPage() {
                               disabled={order.hasReview}
                               endIcon={expandedOrderId === order.id ? <IconChevronUp size={16} /> : <IconChevronDown size={16} />}
                               sx={{
-                                backgroundColor: order.hasReview ? "#1976d295 !important" : "#1976d2 !important",
+                                backgroundColor: order.hasReview ? "#1976d295 !important" : "#5D87FF !important",
                                 color: 'white !important',
                                 minWidth: '80px',
                                 boxShadow: 'none',
@@ -549,7 +549,7 @@ function FakeReviewsPage() {
               variant="contained"
               color="primary"
               sx={{
-                backgroundColor: !content ? "#1976d295 !important" : "#1976d2 !important",
+                backgroundColor: !content ? "#1976d295 !important" : "#5D87FF !important",
                 minWidth: '80px',
                 boxShadow: 'none',
                 '&:hover': {

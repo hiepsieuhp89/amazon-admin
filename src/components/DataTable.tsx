@@ -13,7 +13,7 @@ import {
     Typography,
 } from "@mui/material";
 import { IconPlus } from "@tabler/icons-react";
-import { ReactNode } from "react";
+import { ReactNode, useRef, useState } from "react";
 
 interface DataTableProps {
   columns: { 
@@ -23,7 +23,7 @@ interface DataTableProps {
   }[];
   data: any[];
   isLoading: boolean;
-  pagination?: {
+  pagination?: {  
     page: number;
     take: number;
     itemCount: number;
@@ -54,6 +54,35 @@ export default function DataTable({
   createNewButton,
   searchComponent,
 }: DataTableProps) {
+  const tableContainerRef = useRef<HTMLDivElement>(null);
+  const [isDragging, setIsDragging] = useState(false);
+  const [startX, setStartX] = useState(0);
+  const [scrollLeftStart, setScrollLeftStart] = useState(0);
+
+  const handleMouseDown = (e: React.MouseEvent) => {
+    if (tableContainerRef.current) {
+      setIsDragging(true);
+      setStartX(e.pageX - tableContainerRef.current.offsetLeft);
+      setScrollLeftStart(tableContainerRef.current.scrollLeft);
+      tableContainerRef.current.style.cursor = 'grabbing';
+    }
+  };
+
+  const handleMouseMove = (e: React.MouseEvent) => {
+    if (!isDragging || !tableContainerRef.current) return;
+    e.preventDefault();
+    const x = e.pageX - tableContainerRef.current.offsetLeft;
+    const walk = (x - startX) * 2; // Adjust scroll speed if necessary
+    tableContainerRef.current.scrollLeft = scrollLeftStart - walk;
+  };
+
+  const handleMouseUpOrLeave = () => {
+    if (tableContainerRef.current) {
+      setIsDragging(false);
+      tableContainerRef.current.style.cursor = 'grab';
+    }
+  };
+
   return (
     <div className="flex-1 h-full p-6 pt-0 space-y-6">
       <div className="flex flex-col items-start justify-end gap-4 sm:flex-row sm:items-center">
@@ -94,18 +123,23 @@ export default function DataTable({
         <Box>
           <Box sx={{ 
              overflowX: 'auto',
-          }}>
+             cursor: 'grab',
+          }}
+          ref={tableContainerRef}
+          onMouseDown={handleMouseDown}
+          onMouseMove={handleMouseMove}
+          onMouseUp={handleMouseUpOrLeave}
+          onMouseLeave={handleMouseUpOrLeave}
+          >
             <Paper sx={{ 
-              width: 'max-content', 
-              minWidth: '100%', 
-              overflow: 'hidden', 
+              width: 'max-content',
+              minWidth: '100%',
               border: '1px solid #E0E0E0',
               borderRadius: 0
             }}>
               <TableContainer sx={{ 
-                maxHeight: 'calc(100vh - 400px)', 
-                overflowX: 'auto',
-                width: '100%'
+                maxHeight: 'calc(100vh - 400px)',
+                width: '100%',
               }}>
                 <Table stickyHeader sx={{ 
                   minWidth: 650,

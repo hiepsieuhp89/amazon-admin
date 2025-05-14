@@ -1185,7 +1185,7 @@ const OrderDetailPage = () => {
               variant="contained"
               color="primary"
               sx={{
-                backgroundColor: !content ? "#1976d295 !important" : "#1976d2 !important",
+                backgroundColor: !content ? "#1976d295 !important" : "#5D87FF !important",
                 minWidth: '80px',
                 boxShadow: 'none',
                 '&:hover': {

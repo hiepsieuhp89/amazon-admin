@@ -21,6 +21,12 @@ export interface ICreateFakeOrderPayload {
   address: string
   userId: string
   orderTime?: string
+  countryId?: string;
+  stateId?: string;
+  cityId?: string;
+  districtId?: string;
+  postalCode?: string;
+  deliveryScope?: 'domestic' | 'global';
 }
 
 export interface IShopOrderParams {
@@ -120,7 +126,6 @@ export interface IShopOrderUser {
     isVerified: boolean;
     balance: string;
     fedexBalance: string;
-    // ... other user fields ...
 }
 
 export interface IUpdateFakeOrderPayload {

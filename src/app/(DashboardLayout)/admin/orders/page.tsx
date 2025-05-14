@@ -1,7 +1,7 @@
 "use client";
 import PageContainer from "@/component/container/PageContainer";
 import DashboardCard from "@/component/shared/DashboardCard";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import {
   Box,
   Button,
@@ -44,12 +44,22 @@ const OrdersPage = () => {
   const [delayMessage, setDelayMessage] = useState("");
   const [isDetailView, setIsDetailView] = useState(false);
 
-  // Sử dụng searchParams để xác định xem có phải là tìm kiếm chi tiết hay không
+  // Refs for table drag scroll in Order List
+  const tableListRef = useRef<HTMLDivElement>(null);
+  const isListTableDown = useRef(false);
+  const startListTableX = useRef(0);
+  const scrollListTableLeft = useRef(0);
+
+  // Refs for table drag scroll in Order Detail
+  const tableDetailRef = useRef<HTMLDivElement>(null);
+  const isDetailTableDown = useRef(false);
+  const startDetailTableX = useRef(0);
+  const scrollDetailTableLeft = useRef(0);
+
   useEffect(() => {
     setIsDetailView(searchParams.search.length === 36);
   }, [searchParams.search]);
 
-  // Gọi hook dựa vào trạng thái isDetailView
   const { data: ordersResponse, isLoading: isLoadingOrders } = useGetOrders(
     !isDetailView ? searchParams : { page: 1, take: 0, search: "" }
   );
@@ -58,6 +68,58 @@ const OrdersPage = () => {
   );
   const addDelayMessageMutation = useAddDelayMessage();
   const { data: deliveryStagesData, isLoading: isLoadingStages } = useGetDeliveryStages('SHIPPING');
+  const getDeliveryScopeText = (deliveryScope: string) => {
+    switch (deliveryScope) {
+      case "global":
+        return "Quốc tế";
+      case "domestic":
+        return "Nội địa";
+      default:
+        return deliveryScope || "N/A";
+    }
+  };
+
+  // Helper function to create drag scroll handlers
+  const createDragScrollHandlers = (
+    tableRef: React.RefObject<HTMLDivElement>,
+    isDownRef: React.MutableRefObject<boolean>,
+    startXRef: React.MutableRefObject<number>,
+    scrollLeftRef: React.MutableRefObject<number>
+  ) => {
+    const handleMouseDown = (e: React.MouseEvent<HTMLDivElement>) => {
+      if (!tableRef.current) return;
+      isDownRef.current = true;
+      tableRef.current.style.cursor = 'grabbing';
+      tableRef.current.style.userSelect = 'none';
+      startXRef.current = e.pageX - tableRef.current.offsetLeft;
+      scrollLeftRef.current = tableRef.current.scrollLeft;
+    };
+
+    const handleMouseLeaveOrUp = () => {
+      if (!tableRef.current) return;
+      isDownRef.current = false;
+      tableRef.current.style.cursor = 'grab';
+      tableRef.current.style.userSelect = 'auto';
+    };
+
+    const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
+      if (!isDownRef.current || !tableRef.current) return;
+      e.preventDefault();
+      const x = e.pageX - tableRef.current.offsetLeft;
+      const walk = (x - startXRef.current) * 1.5; // Scroll speed multiplier
+      tableRef.current.scrollLeft = scrollLeftRef.current - walk;
+    };
+
+    return {
+      onMouseDown: handleMouseDown,
+      onMouseLeave: handleMouseLeaveOrUp,
+      onMouseUp: handleMouseLeaveOrUp,
+      onMouseMove: handleMouseMove,
+    };
+  };
+  
+  const listTableHandlers = createDragScrollHandlers(tableListRef, isListTableDown, startListTableX, scrollListTableLeft);
+  const detailTableHandlers = createDragScrollHandlers(tableDetailRef, isDetailTableDown, startDetailTableX, scrollDetailTableLeft);
 
   const handlePageChange = (
     event: React.ChangeEvent<unknown>,
@@ -104,7 +166,6 @@ const OrdersPage = () => {
       toast.success("Đã thêm thông báo delay thành công!");
       closeDelayDialog();
     } catch (error: any) {
-      // Kiểm tra nếu message chính xác là "Order not found"
       if (error?.response?.data?.message === "Order not found") {
         toast.error("Đơn hàng không ở trạng thái SHIPPING");
       } else {
@@ -223,10 +284,18 @@ const OrdersPage = () => {
 
     return (
       <Box sx={{ overflowX: "auto" }}>
-        <TableContainer component={Paper}>
+        <TableContainer 
+          ref={tableDetailRef}
+          component={Paper} 
+          sx={{ 
+            border: '1px solid rgba(224, 224, 224, 1)',
+            cursor: 'grab',
+          }}
+          {...detailTableHandlers}
+        >
           <Table sx={{ minWidth: 1000 }}>
             <TableHead>
-              <TableRow>
+              <TableRow sx={{ backgroundColor: "#F5F5F5" }}>
                 <TableCell sx={{ fontWeight: "bold" }}>ID đơn hàng</TableCell>
                 <TableCell sx={{ fontWeight: "bold" }}>Ngày tạo đơn hàng</TableCell>
                 <TableCell sx={{ fontWeight: "bold" }}>Ngày đặt hàng</TableCell>
@@ -242,7 +311,13 @@ const OrdersPage = () => {
               </TableRow>
             </TableHead>
             <TableBody>
-              <TableRow>
+              <TableRow
+                sx={{
+                  "&:nth-of-type(odd)": { backgroundColor: "#FFFFFF" },
+                  "&:nth-of-type(even)": { backgroundColor: "#F5F5F5" },
+                  "&:hover": { backgroundColor: "#F5F5F5" },
+                }}
+              >
                 <TableCell>
                   <Typography variant="body2" fontWeight="medium">
                     {order.id.substring(0, 8)}...
@@ -357,10 +432,18 @@ const OrdersPage = () => {
     return (
       <>
         <Box sx={{ overflowX: "auto" }}>
-          <TableContainer component={Paper}>
+          <TableContainer 
+            ref={tableListRef}
+            component={Paper} 
+            sx={{ 
+              border: '1px solid rgba(224, 224, 224, 1)',
+              cursor: 'grab',
+            }}
+            {...listTableHandlers}
+          >
             <Table sx={{ minWidth: 1000 }}>
               <TableHead>
-                <TableRow>
+                <TableRow sx={{ backgroundColor: "#F5F5F5" }}>
                   <TableCell sx={{ fontWeight: "bold" }}>ID đơn hàng</TableCell>
                   <TableCell sx={{ fontWeight: "bold" }}>Ngày tạo đơn hàng</TableCell>
                   <TableCell sx={{ fontWeight: "bold" }}>Ngày đặt hàng</TableCell>
@@ -369,6 +452,7 @@ const OrdersPage = () => {
                   <TableCell sx={{ fontWeight: "bold" }} align="right">Tổng tiền</TableCell>
                   <TableCell sx={{ fontWeight: "bold" }} align="right">Giá nhập</TableCell>
                   <TableCell sx={{ fontWeight: "bold" }} align="right">Lợi nhuận</TableCell>
+                  <TableCell sx={{ fontWeight: "bold" }}>Phạm vi</TableCell>
                   <TableCell sx={{ fontWeight: "bold" }}>Trạng thái</TableCell>
                   <TableCell sx={{ fontWeight: "bold" }}>Tiến độ</TableCell>
                   <TableCell sx={{ fontWeight: "bold" }}>Ngày thanh toán</TableCell>
@@ -376,8 +460,15 @@ const OrdersPage = () => {
                 </TableRow>
               </TableHead>
               <TableBody>
-                {ordersResponse?.data?.data?.map((order: any) => (
-                  <TableRow key={order.id}>
+                {ordersResponse?.data?.data?.map((order: any, index: number) => (
+                  <TableRow
+                    key={order.id}
+                    sx={{
+                      "&:nth-of-type(odd)": { backgroundColor: "#FFFFFF" },
+                      "&:nth-of-type(even)": { backgroundColor: "#F5F5F5" },
+                      "&:hover": { backgroundColor: "#F5F5F5" },
+                    }}
+                  >
                     <TableCell>
                       <Typography variant="body2" fontWeight="medium">
                         {order.id.substring(0, 8)}...
@@ -423,6 +514,14 @@ const OrdersPage = () => {
                       <Typography variant="body2" fontWeight="medium" color="success.main">
                         {formatCurrency(order.totalProfit)}
                       </Typography>
+                    </TableCell>
+                    <TableCell>
+                      <Chip
+                      className="!text-white"
+                        label={getDeliveryScopeText(order.deliveryScope)}
+                        size="small"
+                        color={order.deliveryScope === "global" ? "secondary" : "info"}
+                      />
                     </TableCell>
                     <TableCell>
                       <Chip
@@ -537,17 +636,24 @@ const OrdersPage = () => {
                 }
               }}
             />
-            <Button variant="contained" color="primary" onClick={handleSearch}>
+            <Button 
+            variant="contained"
+            color="primary" 
+            sx={{
+              backgroundColor: "#5D87FF !important",
+              boxShadow: 'none',
+              '&:hover': {
+                boxShadow: '0 4px 8px rgba(0,0,0,0.1)',
+              },
+              textTransform: "none"
+            }}
+            onClick={handleSearch}>
               Tìm kiếm
             </Button>
           </Box>
-
-          {/* Hiển thị dữ liệu dựa vào trạng thái tìm kiếm */}
           {isDetailView ? renderOrderDetail() : renderOrdersList()}
         </Box>
       </DashboardCard>
-
-      {/* Delay Message Dialog */}
       <Dialog 
         open={delayDialogOpen} 
         onClose={closeDelayDialog}

@@ -1205,7 +1205,7 @@ export default function ChatDialog({
                   color="primary"
                   disabled={!selectedUserId || (!message && images.length === 0 && !selectedProduct)}
                   sx={{ 
-                    backgroundColor: !selectedUserId || (!message && images.length === 0 && !selectedProduct) ? "#1976d295 !important" : "#1976d2 !important",
+                    backgroundColor: !selectedUserId || (!message && images.length === 0 && !selectedProduct) ? "#1976d295 !important" : "#5D87FF !important",
                     minWidth: '80px',
                     borderRadius: 2,
                     boxShadow: 'none',
