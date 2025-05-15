@@ -844,15 +844,12 @@ export default function ChatDialog({
                 p={1.5} 
                 borderTop="1px solid #e0e0e0" 
                 bgcolor={alpha('#1976d2', 0.03)}
+                
               >
-                <Box display="flex" alignItems="center" gap={2}>
-                  <Chip 
-                    label="Sản phẩm đính kèm" 
-                    size="small" 
-                    color="primary" 
-                    variant="outlined"
-                    sx={{ fontWeight: 500 }}
-                  />
+                <Box display="flex" flexDirection="column" alignItems="start" gap={1}>
+                  <Typography variant="subtitle1" fontWeight={600}>
+                  Sản phẩm đính kèm:
+                  </Typography>
                   <Box 
                     display="flex" 
                     alignItems="center" 
@@ -897,14 +894,14 @@ export default function ChatDialog({
                     <Typography 
                       variant="body2" 
                       fontWeight={500}
-                      noWrap 
                       sx={{ 
                         flex: 1, 
                         cursor: selectedProduct.productId ? 'pointer' : 'default',
                         color: '#1976d2',
                         '&:hover': selectedProduct.productId ? { 
                           textDecoration: 'underline' 
-                        } : {}
+                        } : {},
+                        wordBreak: 'break-word',
                       }}
                       onClick={handleProductClick}
                     >
@@ -1003,7 +1000,7 @@ export default function ChatDialog({
                   position: 'absolute', 
                   bottom: '80px', 
                   right: '24px', 
-                  width: '400px',
+                  width: '600px',
                   maxHeight: '400px',
                   display: 'flex',
                   flexDirection: 'column',
@@ -1178,7 +1175,7 @@ export default function ChatDialog({
                               onClick={() => setShowProductSelector(prev => !prev)}
                               disabled={!selectedUserId}
                               sx={{ 
-                                color: selectedProduct ? 'success.main' : 'inherit',
+                                color: selectedProduct ? '#1976d2' : 'inherit',
                                 opacity: selectedUserId ? 1 : 0.5,
                                 '&:hover': { bgcolor: alpha(selectedProduct ? '#4caf50' : '#1976d2', 0.1) }
                               }}
