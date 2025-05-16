@@ -1,5 +1,5 @@
 export const ConfigAuthEndPoint = {
-  LOGIN: "/auth/login",
+  LOGIN: "/auth/admin-login",
   PROFILE: "/auth/profile",
   REGISTER: "/auth/register",
   FORGOT_PASSSWORD: "/auth/forgot-password",
