@@ -189,3 +189,7 @@ export const ConfigEmailTemplateEndPoint = {
   UPDATE: (type: string) => `/email-templates/${type}`,
   SEND: "/email/send",
 };
+
+export const ConfigBankLookupEndPoint = {
+  BASE: "/bank-lookup/banks",
+}

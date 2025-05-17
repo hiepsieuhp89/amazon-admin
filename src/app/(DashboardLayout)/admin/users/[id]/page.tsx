@@ -1,4 +1,3 @@
-/* eslint-disable @next/next/no-img-element */
 "use client";
 
 import {
@@ -46,9 +45,21 @@ import { useGetAllSpreadPackages } from "@/hooks/spread-package";
 import { useDeleteUser, useGetUserById, useGetUserIpHistory, useUpdateUser } from "@/hooks/user";
 import { ISellerPackage } from "@/interface/response/seller-package";
 import { ISpreadPackage } from "@/interface/response/spread-package";
-import { useGetShopUsers } from "@/hooks/admin-chat";
+import { useGetBanks } from "@/hooks/bank";
 
-// Tab interface
+// Add an interface for bank data
+interface IBank {
+  id: string;
+  name: string;
+  code: string;
+  bin: number;
+  short_name: string;
+  logo_url: string;
+  icon_url: string;
+  swift_code: string | null;
+  lookup_supported: number;
+}
+
 interface TabPanelProps {
   children?: React.ReactNode;
   index: number;
@@ -82,8 +93,6 @@ function UserDetailPage() {
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
-  const [showTransactionPassword, setShowTransactionPassword] = useState(false);
-  const [showWalletPassword, setShowWalletPassword] = useState(false);
   const [showWithdrawPassword, setShowWithdrawPassword] = useState(false);
   const [showFedexPassword, setShowFedexPassword] = useState(false);
   const [tabValue, setTabValue] = useState(0);
@@ -92,7 +101,7 @@ function UserDetailPage() {
   const [imagePreviewDialogOpen, setImagePreviewDialogOpen] = useState(false);
   const [previewImageSrc, setPreviewImageSrc] = useState("");
   const [previewImageTitle, setPreviewImageTitle] = useState("");
-
+  const { data: banksData } = useGetBanks();
   // IP History state
   const [ipHistoryPage, setIpHistoryPage] = useState(0);
   const [ipHistoryRowsPerPage, setIpHistoryRowsPerPage] = useState(10);
@@ -641,7 +650,7 @@ function UserDetailPage() {
   // Format HTTP method for display
   const formatMethod = (method: string): JSX.Element => {
     let color = "default";
-    
+
     switch (method.toUpperCase()) {
       case "GET":
         color = "info";
@@ -874,7 +883,7 @@ function UserDetailPage() {
                   disabled={!isEditing}
                 />
               </div>
-              
+
               {/* User Logo Section */}
               {userData?.data.role === "user" && (
                 <Box mt={4}>
@@ -1190,7 +1199,7 @@ function UserDetailPage() {
                   disabled={!isEditing}
                 />
               </div>}
-              
+
               {/* Thêm thông tin thống kê */}
               {userData?.data.role === "shop" && <Typography variant="subtitle1" className="mt-4 font-medium">Thống kê đơn hàng</Typography>}
               {userData?.data.role === "shop" && <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
@@ -1233,7 +1242,7 @@ function UserDetailPage() {
                   disabled={!isEditing}
                 />
               </div>}
-              
+
               {userData?.data.role === "shop" && <Typography variant="subtitle1" className="mt-4 font-medium">Thống kê hôm nay</Typography>}
               {userData?.data.role === "shop" && <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
                 <TextField
@@ -1276,7 +1285,7 @@ function UserDetailPage() {
                   disabled={true}
                 />
               </div>}
-              
+
               {userData?.data.role === "shop" && <Typography variant="subtitle1" className="mt-4 font-medium">Đơn hàng đang chờ</Typography>}
               {userData?.data.role === "shop" && <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
                 <TextField
@@ -1319,7 +1328,7 @@ function UserDetailPage() {
                   disabled={true}
                 />
               </div>}
-              
+
               {userData?.data.role === "shop" && (
                 <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
                   <TextField
@@ -1342,15 +1351,44 @@ function UserDetailPage() {
               <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
                 <TextField
                   size="small"
-                  label="Tên ngân hàng"
-                  name="bankName"
+                  label="Mã ngân hàng"
+                  name="bankCode"
                   value={formData.bankName}
-                  onChange={handleChange}
+                  InputProps={{
+                    readOnly: true,
+                  }}
                   fullWidth
                   variant="outlined"
                   className="rounded"
-                  disabled={!isEditing}
+                  disabled={true}
                 />
+                <FormControl fullWidth size="small" disabled={!isEditing}>
+                  <InputLabel>Tên ngân hàng</InputLabel>
+                  <Select
+                    name="bankName"
+                    value={formData.bankName}
+                    label="Tên ngân hàng"
+                    onChange={(e) => handleChange(e as any)}
+                    className="!p-0"
+                  >
+                    {Array.isArray(banksData?.data) && banksData?.data.map((bank: IBank) => (
+                      <MenuItem key={bank.id} value={bank.code} className="!p-0">
+                        <div className="flex items-center gap-2">
+                          {bank.logo_url && (
+                            <img
+                              src={bank.logo_url}
+                              alt={bank.name}
+                              className="flex-shrink-0 object-contain w-5 h-5"
+                            />
+                          )}
+                          <span>{bank.name}</span>
+                        </div>
+                      </MenuItem>
+                    ))}
+                  </Select>
+                </FormControl>
+              </div>
+              <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
                 <TextField
                   size="small"
                   label="Số tài khoản"
@@ -1362,13 +1400,24 @@ function UserDetailPage() {
                   className="rounded"
                   disabled={!isEditing}
                 />
-              </div>
-              <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
                 <TextField
                   size="small"
                   label="Tên tài khoản"
                   name="bankAccountName"
                   value={formData.bankAccountName}
+                  onChange={handleChange}
+                  fullWidth
+                  variant="outlined"
+                  className="rounded"
+                  disabled={!isEditing}
+                />
+              </div>
+              <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+                <TextField
+                  size="small"
+                  label="Số ngân hàng"
+                  name="bankNumber"
+                  value={formData.bankNumber}
                   onChange={handleChange}
                   fullWidth
                   variant="outlined"
@@ -1387,30 +1436,7 @@ function UserDetailPage() {
                   disabled={!isEditing}
                 />
               </div>
-              <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
-                <TextField
-                  size="small"
-                  label="Mã ngân hàng"
-                  name="bankCode"
-                  value={formData.bankCode}
-                  onChange={handleChange}
-                  fullWidth
-                  variant="outlined"
-                  className="rounded"
-                  disabled={!isEditing}
-                />
-                <TextField
-                  size="small"
-                  label="Số ngân hàng"
-                  name="bankNumber"
-                  value={formData.bankNumber}
-                  onChange={handleChange}
-                  fullWidth
-                  variant="outlined"
-                  className="rounded"
-                  disabled={!isEditing}
-                />
-              </div>
+
 
               <Typography variant="h6" className="mt-6 font-medium">Thông tin mật khẩu</Typography>
               <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
@@ -1866,13 +1892,13 @@ function UserDetailPage() {
                         </TableCell>
                         <TableCell>
                           {item.metadata ? (
-                            <Tooltip 
+                            <Tooltip
                               title={
                                 <pre className="text-xs whitespace-pre-wrap">
                                   {JSON.stringify(item.metadata, null, 2)}
                                 </pre>
-                              } 
-                              arrow 
+                              }
+                              arrow
                               placement="left"
                             >
                               <IconButton size="small">
