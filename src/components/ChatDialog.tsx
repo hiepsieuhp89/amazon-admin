@@ -343,7 +343,7 @@ export default function ChatDialog({
   const { data: productsData, isLoading: isLoadingProducts } = useGetAllShopProducts({
     shopId: selectedShopId || "",
     page: 1,
-    take: 999999,
+    take: 1000,
     search: searchProduct,
   });
 

@@ -109,7 +109,7 @@ export default function CreateProductPage() {
   const router = useRouter();
   const createProductMutation = useCreateProduct();
   const uploadImageMutation = useUploadImage();
-  const { data: categoriesData } = useGetAllCategories({ take: 999999 });
+  const { data: categoriesData } = useGetAllCategories({ take: 1000 });
 
   const [formData, setFormData] = useState<ICreateProduct>({
     name: '',

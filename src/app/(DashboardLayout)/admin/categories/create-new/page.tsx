@@ -74,7 +74,7 @@ export default function CreateCategoryPage() {
   const uploadImageMutation = useUploadImage()
   const { data: categoriesData } = useGetAllCategories({
     page: 1,
-    take: 999999,
+    take: 1000,
     order: "ASC"
   })
 

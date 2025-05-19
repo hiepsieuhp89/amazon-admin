@@ -65,7 +65,7 @@ function ProductsPage() {
   const [selectedCategoryName, setSelectedCategoryName] = useState('');
   const [selectOpen, setSelectOpen] = useState(false);
 
-  const { data: categoriesData } = useGetAllCategories({ take: 999999 });
+  const { data: categoriesData } = useGetAllCategories({ take: 1000 });
   const { data: productData, isLoading, error } = useGetAllProducts({
     page,
     take: rowsPerPage,

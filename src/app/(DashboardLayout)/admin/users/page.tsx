@@ -67,7 +67,7 @@ function UsersPage() {
   }
   const deleteUserMutation = useDeleteUser()
   const { data: allUsers } = useGetAllUsers({
-    take: 999999,
+    take: 1000,
     role: "user"
   })
   const [balanceDialogOpen, setBalanceDialogOpen] = useState(false);

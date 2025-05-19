@@ -75,7 +75,7 @@ const AdminPosPage = () => {
   const [selectedShopId, setSelectedShopId] = useState<string>("");
   const { data: shopsData, isLoading: isLoadingShops } = useGetAllUsers({
     role: "shop",
-    take: 9999999999,
+    take: 1000,
     search: searchShop,
   });
   const [currentPage, setCurrentPage] = useState(1);
@@ -126,14 +126,14 @@ const AdminPosPage = () => {
   const [minute, setMinute] = useState(dayjs().minute());
   const [second, setSecond] = useState(dayjs().second());
 
-  const { data: countries } = useGetCountries({ take: 9999999999 });
+  const { data: countries } = useGetCountries({ take: 1000 });
   const { data: states } = useGetStates({
     countryId: selectedCountry,
-    take: 9999999999,
+    take: 1000,
   });
   const { data: cities } = useGetCities({
     stateId: selectedState,
-    take: 9999999999,
+    take: 1000,
   });
   const { mutate: createUser } = useCreateUser();
   const [isCopied, setIsCopied] = useState(false);

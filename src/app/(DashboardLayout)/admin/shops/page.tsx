@@ -75,7 +75,7 @@ function ShopsPage() {
     }
     const deleteUserMutation = useDeleteUser()
     const { data: allUsers } = useGetAllUsers({
-        take: 999999,
+        take: 1000,
         role: "user"
     })
     const { data: ordersData, isLoading: isOrdersLoading } = useGetShopOrders(orderParams)

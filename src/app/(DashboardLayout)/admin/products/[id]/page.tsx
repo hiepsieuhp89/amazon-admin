@@ -107,7 +107,7 @@ function ProductDetailPage() {
   const [selectedCategoryName, setSelectedCategoryName] = useState<string>('')
 
   const { data: productData, isLoading, error } = useGetProductById(id)
-  const { data: categoriesData, isLoading: isCategoriesLoading } = useGetAllCategories({ take: 999999 })
+  const { data: categoriesData, isLoading: isCategoriesLoading } = useGetAllCategories({ take: 1000 })
   const deleteProductMutation = useDeleteProduct()
   const updateProductMutation = useUpdateProduct()
   const uploadImageMutation = useUploadImage()

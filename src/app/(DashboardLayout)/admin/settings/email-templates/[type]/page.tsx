@@ -173,7 +173,7 @@ export default function EmailTemplateEditPage({ params }: { params: { type: stri
       border-top: 1px solid #eeeeee;
       text-align: center;
       font-size: 12px;
-      color: #999999;
+      color: #1000;
     }
     .button {
       display: inline-block;

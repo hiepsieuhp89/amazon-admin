@@ -56,7 +56,7 @@ function ShopsPage() {
     const { data: userData, isLoading, error } = useGetAllUsers({
         page,
         role: 'shop',
-        take: 999999,
+        take: 1000,
         order: "DESC",
         search: searchTerm
     })
@@ -72,7 +72,7 @@ function ShopsPage() {
     }
     const deleteUserMutation = useDeleteUser()
     const { data: allUsers } = useGetAllUsers({
-        take: 999999,
+        take: 1000,
         role: "user"
     })
     const { data: ordersData, isLoading: isOrdersLoading } = useGetShopOrders(orderParams)
