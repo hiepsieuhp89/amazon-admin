@@ -1,5 +1,5 @@
 export const ConfigAuthEndPoint = {
-  LOGIN: "/auth/login",
+  LOGIN: "/auth/admin-login",
   PROFILE: "/auth/profile",
   REGISTER: "/auth/register",
   FORGOT_PASSSWORD: "/auth/forgot-password",
@@ -189,3 +189,7 @@ export const ConfigEmailTemplateEndPoint = {
   UPDATE: (type: string) => `/email-templates/${type}`,
   SEND: "/email/send",
 };
+
+export const ConfigBankLookupEndPoint = {
+  BASE: "/bank-lookup/banks",
+}

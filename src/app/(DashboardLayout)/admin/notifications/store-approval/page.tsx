@@ -13,17 +13,14 @@ import {
     IconButton,
     InputAdornment,
     MenuItem,
-    Table,
-    TableBody,
     TableCell,
-    TableHead,
     TableRow,
     TextField,
     Typography,
     Menu
 } from "@mui/material"
-import { IconCopy, IconEye, IconList, IconMessage, IconSearch, IconTrash, IconEdit, IconDotsVertical, IconWallet, IconMoodSadDizzy, IconMapPinCheck } from "@tabler/icons-react"
-import { message, Pagination } from "antd"
+import { IconCopy, IconEye, IconSearch, IconTrash, IconEdit, IconDotsVertical, IconWallet, IconMoodSadDizzy, IconMapPinCheck } from "@tabler/icons-react"
+import { message } from "antd"
 import { useRouter } from "next/navigation"
 import { useState } from "react"
 
@@ -228,37 +225,6 @@ function ShopsPage() {
     const handleMenuClose = () => {
         setAnchorEl(null);
         setMenuUserId(null);
-    };
-
-    const handleToggleFreeze = async (userId: string) => {
-        try {
-            const user = filteredUsers.find(u => u.id === userId);
-            if (!user) return;
-
-            const newStatus = user.shopStatus === "SUSPENDED" ? "ACTIVE" : "SUSPENDED";
-
-            await updateUserMutation.mutateAsync({
-                id: userId,
-                payload: {
-                    shopStatus: newStatus
-                }
-            });
-
-            message.success(newStatus === "SUSPENDED"
-                ? "Đã đóng băng shop thành công!"
-                : "Đã bỏ đóng băng shop thành công!");
-
-            handleMenuClose();
-        } catch (error) {
-            message.error("Không thể thay đổi trạng thái shop. Vui lòng thử lại.");
-            console.error(error);
-        }
-    };
-
-    const handleBalanceDialogOpen = (userId: string, type: 'deposit' | 'withdraw') => {
-        setSelectedUserId(userId);
-        setBalanceActionType(type);
-        setBalanceDialogOpen(true);
     };
 
     const handleBalanceDialogClose = () => {
