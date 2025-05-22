@@ -89,6 +89,8 @@ export const useDeleteFakeOrder = (): UseMutationResult<any, Error, string> => {
     mutationFn: (orderId: string) => deleteFakeOrder(orderId),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: [SHOP_ORDERS_KEY] });
+      queryClient.invalidateQueries({ queryKey: [VALID_USERS_KEY] });
+      queryClient.invalidateQueries({ queryKey: [ORDERS_KEY] });
     },
   });
 };

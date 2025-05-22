@@ -24,12 +24,15 @@ import {
   DialogTitle,
   DialogContent,
   DialogActions,
+  Menu,
+  MenuItem,
+  DialogContentText,
 } from "@mui/material";
-import { useGetOrders } from "@/hooks/fake-order";
+import { useGetOrders, useDeleteFakeOrder } from "@/hooks/fake-order";
 import { useAddDelayMessage, useGetDeliveryStages, useGetOrderDetail } from "@/hooks/order";
 import { format } from "date-fns";
 import { vi } from "date-fns/locale";
-import { IconSearch, IconEye, IconClock } from "@tabler/icons-react";
+import { IconSearch, IconEye, IconClock, IconDotsVertical, IconTrash } from "@tabler/icons-react";
 import { toast } from "react-toastify";
 import { formatTime } from "@/utils";
 
@@ -43,6 +46,10 @@ const OrdersPage = () => {
   const [selectedOrder, setSelectedOrder] = useState<any>(null);
   const [delayMessage, setDelayMessage] = useState("");
   const [isDetailView, setIsDetailView] = useState(false);
+  const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
+  const [menuOrderId, setMenuOrderId] = useState<string | null>(null);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [orderToDelete, setOrderToDelete] = useState<any>(null);
 
   // Refs for table drag scroll in Order List
   const tableListRef = useRef<HTMLDivElement>(null);
@@ -68,6 +75,7 @@ const OrdersPage = () => {
   );
   const addDelayMessageMutation = useAddDelayMessage();
   const { data: deliveryStagesData, isLoading: isLoadingStages } = useGetDeliveryStages('SHIPPING');
+  const deleteOrderMutation = useDeleteFakeOrder();
   const getDeliveryScopeText = (deliveryScope: string) => {
     switch (deliveryScope) {
       case "global":
@@ -419,6 +427,33 @@ const OrdersPage = () => {
     );
   };
 
+  const handleMenuOpen = (event: React.MouseEvent<HTMLElement>, orderId: string) => {
+    setAnchorEl(event.currentTarget);
+    setMenuOrderId(orderId);
+  };
+
+  const handleMenuClose = () => {
+    setAnchorEl(null);
+    setMenuOrderId(null);
+  };
+
+  const openDeleteDialog = (order: any) => {
+    setOrderToDelete(order);
+    setDeleteDialogOpen(true);
+  };
+
+  const handleDeleteConfirm = async () => {
+    if (!orderToDelete) return;
+    try {
+      await deleteOrderMutation.mutateAsync(orderToDelete.id);
+      toast.success("Đã xoá đơn hàng thành công!");
+      setDeleteDialogOpen(false);
+      setOrderToDelete(null);
+    } catch (error: any) {
+      toast.error(error?.response?.data?.message || "Không thể xoá đơn hàng. Vui lòng thử lại!");
+    }
+  };
+
   // Hiển thị danh sách đơn hàng từ ordersResponse
   const renderOrdersList = () => {
     if (isLoadingOrders || isLoadingStages) {
@@ -547,26 +582,50 @@ const OrdersPage = () => {
                       </Typography>
                     </TableCell>
                     <TableCell align="center">
-                      <Stack direction="row" spacing={1} justifyContent="center">
-                        <Tooltip title="Xem chi tiết">
-                          <IconButton
-                            size="small"
-                            color="primary"
-                            href={`/admin/orders/${order.id}`}
-                          >
-                            <IconEye size={18} />
-                          </IconButton>
-                        </Tooltip>
-                        <Tooltip title="Thông báo delay">
-                          <IconButton
-                            size="small"
-                            color="warning"
-                            onClick={() => openDelayDialog(order)}
-                          >
-                            <IconClock size={18} />
-                          </IconButton>
-                        </Tooltip>
-                      </Stack>
+                      <Box className="flex items-center justify-center gap-4">
+                        <IconButton
+                          onClick={(e) => handleMenuOpen(e, order.id)}
+                          size="medium"
+                        >
+                          <IconDotsVertical size={18} />
+                        </IconButton>
+                        <Menu
+                          anchorEl={anchorEl}
+                          open={Boolean(anchorEl) && menuOrderId === order.id}
+                          onClose={handleMenuClose}
+                          PaperProps={{
+                            className: "!rounded-[6px] shadow-xl",
+                          }}
+                        >
+                          <MenuItem onClick={() => {
+                            window.location.href = `/admin/orders/${order.id}`;
+                            handleMenuClose();
+                          }}>
+                            <Box className="flex items-center gap-2">
+                              <IconEye size={16} className="text-blue-400" />
+                              <span>Xem chi tiết</span>
+                            </Box>
+                          </MenuItem>
+                          <MenuItem onClick={() => {
+                            openDelayDialog(order);
+                            handleMenuClose();
+                          }}>
+                            <Box className="flex items-center gap-2">
+                              <IconClock size={16} className="text-orange-400" />
+                              <span>Thông báo delay</span>
+                            </Box>
+                          </MenuItem>
+                          <MenuItem onClick={() => {
+                            openDeleteDialog(order);
+                            handleMenuClose();
+                          }}>
+                            <Box className="flex items-center gap-2">
+                              <IconTrash size={16} className="text-red-400" />
+                              <span>Xoá</span>
+                            </Box>
+                          </MenuItem>
+                        </Menu>
+                      </Box>
                     </TableCell>
                   </TableRow>
                 ))}
@@ -603,6 +662,44 @@ const OrdersPage = () => {
             />
           </Box>
         )}
+
+        <Dialog
+          open={deleteDialogOpen}
+          onClose={() => setDeleteDialogOpen(false)}
+          PaperProps={{
+            className: "!rounded-[6px] shadow-xl",
+          }}
+        >
+          <DialogTitle fontSize={18}>Xác nhận xoá đơn hàng</DialogTitle>
+          <DialogContent>
+            <DialogContentText className="text-gray-400">
+              Bạn có chắc chắn muốn xoá đơn hàng này? Hành động này không thể hoàn tác.
+            </DialogContentText>
+          </DialogContent>
+          <DialogActions className="!p-4 !pb-6">
+            <Button
+              variant="outlined"
+              onClick={() => setDeleteDialogOpen(false)}
+            >
+              Huỷ bỏ
+            </Button>
+            <Button
+              variant="outlined"
+              onClick={handleDeleteConfirm}
+              className="text-white transition-colors !bg-red-500"
+              disabled={deleteOrderMutation.isPending}
+            >
+              {deleteOrderMutation.isPending ? (
+                <div className="flex items-center gap-2 text-white">
+                  <CircularProgress size={16} className="text-white" />
+                  Đang xoá...
+                </div>
+              ) : (
+                <span className="!text-white">Xoá</span>
+              )}
+            </Button>
+          </DialogActions>
+        </Dialog>
       </>
     );
   };
@@ -682,8 +779,16 @@ const OrdersPage = () => {
           </Button>
           <Button 
             onClick={handleSubmitDelay} 
-            variant="contained" 
-            color="primary"
+            variant="contained"
+            color="primary" 
+            sx={{
+              backgroundColor: "#5D87FF !important",
+              boxShadow: 'none',
+              '&:hover': {
+                boxShadow: '0 4px 8px rgba(0,0,0,0.1)',
+              },
+              textTransform: "none"
+            }}
             disabled={addDelayMessageMutation.isPending}
           >
             {addDelayMessageMutation.isPending ? "Đang xử lý..." : "Xác nhận"}

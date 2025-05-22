@@ -376,7 +376,7 @@ function ProductDetailPage() {
               <Box className="flex-1">
                 <TextField
                   size="small"
-                  label="Giá"
+                  label="Giá gốc"
                   name="price"
                   type="number"
                   value={formData.price}
