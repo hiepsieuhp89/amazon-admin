@@ -337,24 +337,17 @@ function ShopsPage() {
         }
 
         try {
-            const currentUser = filteredUsers.find(user => user.id === selectedUserId);
-            if (!currentUser) {
-                message.error('Không tìm thấy thông tin người dùng');
-                return;
-            }
-
-            const currentBalance = Number(currentUser.balance);
             const amountNumber = Number(amount);
-            // Nếu là rút tiền thì balanceAddBalance là số âm
-            const addAmount = balanceActionType === 'deposit' ? amountNumber : -amountNumber;
+            let payload: any = { isHaveLogTransaction: true };
+            if (balanceActionType === 'deposit') {
+                payload.balanceAddBalance = amountNumber;
+            } else {
+                payload.balanceSubBalance = amountNumber;
+            }
 
             await updateUserMutation.mutateAsync({
                 id: selectedUserId,
-                payload: {
-                    balanceSubBalance: currentBalance,
-                    balanceAddBalance: addAmount,
-                    isHaveLogTransaction: true
-                }
+                payload
             });
 
             message.success(`${balanceActionType === 'deposit' ? 'Nạp' : 'Rút'} tiền thành công!`);
@@ -384,24 +377,17 @@ function ShopsPage() {
         }
 
         try {
-            const currentUser = filteredUsers.find(user => user.id === selectedUserId);
-            if (!currentUser) {
-                message.error('Không tìm thấy thông tin người dùng');
-                return;
-            }
-
-            const currentBalance = Number(currentUser.fedexBalance);
             const amountNumber = Number(amount);
-            // Nếu là rút tiền thì fedexAddBalance là số âm
-            const addAmount = fedexBalanceActionType === 'deposit' ? amountNumber : -amountNumber;
+            let payload: any = { isHaveLogTransaction: true };
+            if (fedexBalanceActionType === 'deposit') {
+                payload.fedexAddBalance = amountNumber;
+            } else {
+                payload.fedexSubBalance = amountNumber;
+            }
 
             await updateUserMutation.mutateAsync({
                 id: selectedUserId,
-                payload: {
-                    fedexSubBalance: currentBalance,
-                    fedexAddBalance: addAmount,
-                    isHaveLogTransaction: true
-                }
+                payload
             });
 
             message.success(`${fedexBalanceActionType === 'deposit' ? 'Nạp' : 'Rút'} tiền Fedex thành công!`);
