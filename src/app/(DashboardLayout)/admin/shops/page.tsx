@@ -345,14 +345,14 @@ function ShopsPage() {
 
             const currentBalance = Number(currentUser.balance);
             const amountNumber = Number(amount);
-            const newBalance = balanceActionType === 'deposit'
-                ? currentBalance + amountNumber
-                : currentBalance - amountNumber;
+            // Nếu là rút tiền thì balanceAddBalance là số âm
+            const addAmount = balanceActionType === 'deposit' ? amountNumber : -amountNumber;
 
             await updateUserMutation.mutateAsync({
                 id: selectedUserId,
                 payload: {
-                    balance: newBalance.toString(),
+                    balanceSubBalance: currentBalance,
+                    balanceAddBalance: addAmount,
                     isHaveLogTransaction: true
                 }
             });
@@ -392,14 +392,14 @@ function ShopsPage() {
 
             const currentBalance = Number(currentUser.fedexBalance);
             const amountNumber = Number(amount);
-            const newBalance = fedexBalanceActionType === 'deposit'
-                ? currentBalance + amountNumber
-                : currentBalance - amountNumber;
+            // Nếu là rút tiền thì fedexAddBalance là số âm
+            const addAmount = fedexBalanceActionType === 'deposit' ? amountNumber : -amountNumber;
 
             await updateUserMutation.mutateAsync({
                 id: selectedUserId,
                 payload: {
-                    fedexBalance: newBalance.toString(),
+                    fedexSubBalance: currentBalance,
+                    fedexAddBalance: addAmount,
                     isHaveLogTransaction: true
                 }
             });

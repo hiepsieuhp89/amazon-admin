@@ -112,5 +112,9 @@ export interface IUpdateUser {
     idCardFrontImage?: string
     idCardBackImage?: string
     logoUrl?: string
+    balanceAddBalance?: number | string
+    balanceSubBalance?: number | string
+    fedexAddBalance?: number | string
+    fedexSubBalance?: number | string
 }
 
